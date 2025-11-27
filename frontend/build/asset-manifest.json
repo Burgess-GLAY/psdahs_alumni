@@ -1,0 +1,39 @@
+{
+  "files": {
+    "main.css": "/static/css/main.1c34e8ea.css",
+    "main.js": "/static/js/main.cfd068ae.js",
+    "reactPlayerHls.js": "/static/js/reactPlayerHls.5ea069c6.chunk.js",
+    "reactPlayerDash.js": "/static/js/reactPlayerDash.84fbb2c4.chunk.js",
+    "reactPlayerMux.js": "/static/js/reactPlayerMux.51fd9666.chunk.js",
+    "reactPlayerYouTube.js": "/static/js/reactPlayerYouTube.6dbb82ed.chunk.js",
+    "reactPlayerVimeo.js": "/static/js/reactPlayerVimeo.56d10d8e.chunk.js",
+    "reactPlayerWistia.js": "/static/js/reactPlayerWistia.7e535aa5.chunk.js",
+    "reactPlayerSpotify.js": "/static/js/reactPlayerSpotify.6d13f823.chunk.js",
+    "reactPlayerTwitch.js": "/static/js/reactPlayerTwitch.4012b32c.chunk.js",
+    "reactPlayerTiktok.js": "/static/js/reactPlayerTiktok.bb81d92a.chunk.js",
+    "reactPlayerPreview.js": "/static/js/reactPlayerPreview.27ae3698.chunk.js",
+    "static/js/416.bf2ba915.chunk.js": "/static/js/416.bf2ba915.chunk.js",
+    "static/js/365.089ff2b1.chunk.js": "/static/js/365.089ff2b1.chunk.js",
+    "static/js/788.aa18c137.chunk.js": "/static/js/788.aa18c137.chunk.js",
+    "index.html": "/index.html",
+    "main.1c34e8ea.css.map": "/static/css/main.1c34e8ea.css.map",
+    "main.cfd068ae.js.map": "/static/js/main.cfd068ae.js.map",
+    "reactPlayerHls.5ea069c6.chunk.js.map": "/static/js/reactPlayerHls.5ea069c6.chunk.js.map",
+    "reactPlayerDash.84fbb2c4.chunk.js.map": "/static/js/reactPlayerDash.84fbb2c4.chunk.js.map",
+    "reactPlayerMux.51fd9666.chunk.js.map": "/static/js/reactPlayerMux.51fd9666.chunk.js.map",
+    "reactPlayerYouTube.6dbb82ed.chunk.js.map": "/static/js/reactPlayerYouTube.6dbb82ed.chunk.js.map",
+    "reactPlayerVimeo.56d10d8e.chunk.js.map": "/static/js/reactPlayerVimeo.56d10d8e.chunk.js.map",
+    "reactPlayerWistia.7e535aa5.chunk.js.map": "/static/js/reactPlayerWistia.7e535aa5.chunk.js.map",
+    "reactPlayerSpotify.6d13f823.chunk.js.map": "/static/js/reactPlayerSpotify.6d13f823.chunk.js.map",
+    "reactPlayerTwitch.4012b32c.chunk.js.map": "/static/js/reactPlayerTwitch.4012b32c.chunk.js.map",
+    "reactPlayerTiktok.bb81d92a.chunk.js.map": "/static/js/reactPlayerTiktok.bb81d92a.chunk.js.map",
+    "reactPlayerPreview.27ae3698.chunk.js.map": "/static/js/reactPlayerPreview.27ae3698.chunk.js.map",
+    "416.bf2ba915.chunk.js.map": "/static/js/416.bf2ba915.chunk.js.map",
+    "365.089ff2b1.chunk.js.map": "/static/js/365.089ff2b1.chunk.js.map",
+    "788.aa18c137.chunk.js.map": "/static/js/788.aa18c137.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1c34e8ea.css",
+    "static/js/main.cfd068ae.js"
+  ]
+}
