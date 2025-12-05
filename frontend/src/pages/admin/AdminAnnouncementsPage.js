@@ -33,7 +33,8 @@ import {
   Tooltip,
   CircularProgress,
   Alert,
-  CardMedia
+  CardMedia,
+  FormHelperText
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -61,6 +62,7 @@ const AdminAnnouncementsPage = () => {
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const { enqueueSnackbar } = useSnackbar();
 
   // Fetch announcements from API
@@ -125,6 +127,7 @@ const AdminAnnouncementsPage = () => {
     setCurrentAnnouncement(null);
     setSelectedImage(null);
     setPreviewImage(null);
+    setValidationErrors({});
   };
 
   const handleInputChange = (e) => {
@@ -147,8 +150,38 @@ const AdminAnnouncementsPage = () => {
     }
   };
 
+  const validateForm = () => {
+    const errors = {};
+
+    if (!currentAnnouncement.title || currentAnnouncement.title.trim().length < 3) {
+      errors.title = 'Title must be at least 3 characters';
+    }
+
+    if (!currentAnnouncement.description || currentAnnouncement.description.trim().length < 10) {
+      errors.description = 'Description must be at least 10 characters';
+    }
+
+    if (!currentAnnouncement.category) {
+      errors.category = 'Category is required';
+    }
+
+    if (!currentAnnouncement.startDate) {
+      errors.startDate = 'Start date is required';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form
+    if (!validateForm()) {
+      enqueueSnackbar('Please fix the validation errors', { variant: 'error' });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -290,209 +323,207 @@ const AdminAnnouncementsPage = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
-      <Box sx={{ py: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
-        <Box
-          display="flex"
-          flexDirection={{ xs: 'column', sm: 'row' }}
-          justifyContent="space-between"
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          gap={2}
-          mb={3}
+    <Box sx={{ py: { xs: 2, sm: 3, md: 4 }, mb: 4, width: '100%' }}>
+      <Box
+        display="flex"
+        flexDirection={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        gap={2}
+        mb={3}
+      >
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}
         >
-          <Typography
-            variant="h4"
-            component="h1"
-            sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}
-          >
-            <Box display="flex" alignItems="center" flexWrap="wrap">
-              <AnnouncementIcon sx={{ mr: 1 }} />
-              Manage Announcements
-            </Box>
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            fullWidth={{ xs: true, sm: false }}
-            sx={{ minHeight: 44 }}
-          >
-            New Announcement
-          </Button>
-        </Box>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {loading ? (
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-            <CircularProgress />
+          <Box display="flex" alignItems="center" flexWrap="wrap">
+            <AnnouncementIcon sx={{ mr: 1 }} />
+            Manage Announcements
           </Box>
-        ) : (
-          <Card>
-            <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-              {announcements.length === 0 ? (
-                <Box textAlign="center" py={8}>
-                  <AnnouncementIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-                  <Typography variant="h6" color="text.secondary" gutterBottom>
-                    No announcements yet
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" mb={3}>
-                    Create your first announcement to get started
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    onClick={() => handleOpenDialog()}
-                  >
-                    Create Announcement
-                  </Button>
-                </Box>
-              ) : (
-                <>
-                  <TableContainer
-                    component={Paper}
-                    sx={{
-                      overflowX: 'auto',
-                      maxWidth: '100%'
-                    }}
-                  >
-                    <Table sx={{ minWidth: { xs: 650, sm: 750 } }}>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Title</TableCell>
-                          <TableCell>Category</TableCell>
-                          <TableCell>Author</TableCell>
-                          <TableCell>Date</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell>Views</TableCell>
-                          <TableCell align="right">Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {announcements
-                          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                          .map((announcement) => (
-                            <TableRow key={announcement._id} hover>
-                              <TableCell>
-                                <Box display="flex" alignItems="center" gap={1}>
-                                  {announcement.isPinned && (
-                                    <PushPinIcon color="primary" fontSize="small" />
-                                  )}
-                                  {announcement.imageUrl && (
-                                    <ImageIcon color="action" fontSize="small" />
-                                  )}
-                                  <Typography variant="body2" sx={{ maxWidth: 300 }}>
-                                    {announcement.title}
-                                  </Typography>
-                                </Box>
-                              </TableCell>
-                              <TableCell>
-                                <Chip
-                                  label={announcement.category}
-                                  color={getCategoryColor(announcement.category)}
-                                  size="small"
-                                  sx={{ textTransform: 'capitalize' }}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Box display="flex" alignItems="center">
-                                  <Avatar
-                                    src={announcement.author?.profilePicture}
-                                    sx={{ width: 32, height: 32, mr: 1 }}
-                                  >
-                                    {announcement.author?.firstName?.[0]}
-                                  </Avatar>
-                                  <Typography variant="body2">
-                                    {announcement.author?.firstName} {announcement.author?.lastName}
-                                  </Typography>
-                                </Box>
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2">
-                                  {format(new Date(announcement.startDate), 'MMM d, yyyy')}
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                <FormControlLabel
-                                  control={
-                                    <Switch
-                                      checked={announcement.isPublished}
-                                      onChange={() => handleToggleStatus(announcement)}
-                                      color="primary"
-                                      size="small"
-                                    />
-                                  }
-                                  label={
-                                    <Typography variant="caption">
-                                      {announcement.isPublished ? 'Published' : 'Draft'}
-                                    </Typography>
-                                  }
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Box display="flex" alignItems="center">
-                                  <VisibilityIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                                  <Typography variant="body2">
-                                    {announcement.views || 0}
-                                  </Typography>
-                                </Box>
-                              </TableCell>
-                              <TableCell align="right">
-                                <Tooltip title="Edit">
-                                  <IconButton
-                                    color="primary"
-                                    onClick={() => handleOpenDialog(announcement)}
-                                    size="small"
-                                    sx={{ mr: 0.5 }}
-                                  >
-                                    <EditIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title={announcement.isPinned ? 'Unpin' : 'Pin to top'}>
-                                  <IconButton
-                                    color={announcement.isPinned ? 'primary' : 'default'}
-                                    onClick={() => handleTogglePin(announcement._id)}
-                                    size="small"
-                                    sx={{ mr: 0.5 }}
-                                  >
-                                    <PushPinIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete">
-                                  <IconButton
-                                    color="error"
-                                    onClick={() => handleDelete(announcement._id)}
-                                    size="small"
-                                  >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                  <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    component="div"
-                    count={announcements.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                  />
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
+          fullWidth={{ xs: true, sm: false }}
+          sx={{ minHeight: 44 }}
+        >
+          New Announcement
+        </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      {loading ? (
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Card>
+          <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+            {announcements.length === 0 ? (
+              <Box textAlign="center" py={8}>
+                <AnnouncementIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  No announcements yet
+                </Typography>
+                <Typography variant="body2" color="text.secondary" mb={3}>
+                  Create your first announcement to get started
+                </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => handleOpenDialog()}
+                >
+                  Create Announcement
+                </Button>
+              </Box>
+            ) : (
+              <>
+                <TableContainer
+                  component={Paper}
+                  sx={{
+                    overflowX: 'auto',
+                    maxWidth: '100%'
+                  }}
+                >
+                  <Table sx={{ minWidth: { xs: 650, sm: 750 } }}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Title</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Author</TableCell>
+                        <TableCell>Date</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Views</TableCell>
+                        <TableCell align="right">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {announcements
+                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                        .map((announcement) => (
+                          <TableRow key={announcement._id} hover>
+                            <TableCell>
+                              <Box display="flex" alignItems="center" gap={1}>
+                                {announcement.isPinned && (
+                                  <PushPinIcon color="primary" fontSize="small" />
+                                )}
+                                {announcement.imageUrl && (
+                                  <ImageIcon color="action" fontSize="small" />
+                                )}
+                                <Typography variant="body2" sx={{ maxWidth: 300 }}>
+                                  {announcement.title}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={announcement.category}
+                                color={getCategoryColor(announcement.category)}
+                                size="small"
+                                sx={{ textTransform: 'capitalize' }}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Box display="flex" alignItems="center">
+                                <Avatar
+                                  src={announcement.author?.profilePicture}
+                                  sx={{ width: 32, height: 32, mr: 1 }}
+                                >
+                                  {announcement.author?.firstName?.[0]}
+                                </Avatar>
+                                <Typography variant="body2">
+                                  {announcement.author?.firstName} {announcement.author?.lastName}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {format(new Date(announcement.startDate), 'MMM d, yyyy')}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={announcement.isPublished}
+                                    onChange={() => handleToggleStatus(announcement)}
+                                    color="primary"
+                                    size="small"
+                                  />
+                                }
+                                label={
+                                  <Typography variant="caption">
+                                    {announcement.isPublished ? 'Published' : 'Draft'}
+                                  </Typography>
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Box display="flex" alignItems="center">
+                                <VisibilityIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
+                                <Typography variant="body2">
+                                  {announcement.views || 0}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  color="primary"
+                                  onClick={() => handleOpenDialog(announcement)}
+                                  size="small"
+                                  sx={{ mr: 0.5 }}
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title={announcement.isPinned ? 'Unpin' : 'Pin to top'}>
+                                <IconButton
+                                  color={announcement.isPinned ? 'primary' : 'default'}
+                                  onClick={() => handleTogglePin(announcement._id)}
+                                  size="small"
+                                  sx={{ mr: 0.5 }}
+                                >
+                                  <PushPinIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  color="error"
+                                  onClick={() => handleDelete(announcement._id)}
+                                  size="small"
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25, 50]}
+                  component="div"
+                  count={announcements.length}
+                  rowsPerPage={rowsPerPage}
+                  page={page}
+                  onPageChange={handleChangePage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Add/Edit Announcement Dialog */}
       <Dialog
@@ -523,8 +554,8 @@ const AdminAnnouncementsPage = () => {
               <CloseIcon />
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers>
-            <Grid container spacing={3} sx={{ mt: 1 }}>
+          <DialogContent dividers sx={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            <Grid container spacing={3}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -535,11 +566,13 @@ const AdminAnnouncementsPage = () => {
                   required
                   margin="normal"
                   variant="outlined"
+                  error={!!validationErrors.title}
+                  helperText={validationErrors.title || 'Enter a descriptive title for the announcement'}
                 />
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth margin="normal" required>
+                <FormControl fullWidth margin="normal" required error={!!validationErrors.category}>
                   <InputLabel>Category</InputLabel>
                   <Select
                     name="category"
@@ -551,6 +584,9 @@ const AdminAnnouncementsPage = () => {
                     <MenuItem value="achievements">Achievements</MenuItem>
                     <MenuItem value="events">Events</MenuItem>
                   </Select>
+                  {validationErrors.category && (
+                    <FormHelperText>{validationErrors.category}</FormHelperText>
+                  )}
                 </FormControl>
               </Grid>
 
@@ -632,6 +668,8 @@ const AdminAnnouncementsPage = () => {
                   multiline
                   rows={8}
                   placeholder="Enter the announcement description..."
+                  error={!!validationErrors.description}
+                  helperText={validationErrors.description || 'Provide detailed information about the announcement'}
                 />
               </Grid>
 
@@ -697,8 +735,8 @@ const AdminAnnouncementsPage = () => {
               </Grid>
             </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog} disabled={isSubmitting}>
+          <DialogActions sx={{ p: 2 }}>
+            <Button onClick={handleCloseDialog} disabled={isSubmitting} variant="outlined">
               Cancel
             </Button>
             <Button
@@ -712,7 +750,7 @@ const AdminAnnouncementsPage = () => {
           </DialogActions>
         </form>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 

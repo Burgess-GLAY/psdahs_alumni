@@ -2,6 +2,22 @@ const User = require('../models/User');
 const { ErrorResponse } = require('../middleware/errorHandler');
 const bcrypt = require('bcryptjs');
 
+// @desc    Get total user count
+// @route   GET /api/users/count
+// @access  Public
+exports.getUserCount = async (req, res, next) => {
+  try {
+    const count = await User.countDocuments();
+
+    res.json({
+      success: true,
+      count
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // @desc    Get public user statistics
 // @route   GET /api/users/public-stats
 // @access  Public

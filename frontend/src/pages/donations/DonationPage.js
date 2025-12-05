@@ -18,6 +18,7 @@ import PaymentMethodSelector from '../../components/donation/PaymentMethodSelect
 import DonorRecognitionForm from '../../components/donation/DonorRecognitionForm';
 import ThankYouModal from '../../components/donation/ThankYouModal';
 import ImpactStoriesSection from '../../components/donation/ImpactStoriesSection';
+// import StripePaymentWrapper from '../../components/donation/StripePaymentWrapper';
 import {
   setCategory,
   prefillDonorInfo,
@@ -139,49 +140,49 @@ const DonationPage = () => {
           onCategorySelect={handleCategorySelect}
         />
 
-        {/* Main Donation Form */}
-        <Container maxWidth="lg" sx={{ py: 8 }}>
-          <Grid container spacing={4}>
-            {/* Left Column - Form */}
-            <Grid item xs={12} md={8}>
-              <Paper elevation={2} sx={{ p: 4 }}>
-                <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
+        {/* Main Donation Form - Centered and Portable */}
+        <Container maxWidth="md" sx={{ py: 8 }}>
+          <Grid container spacing={4} justifyContent="center">
+            {/* Main Form - Vertical Layout */}
+            <Grid item xs={12} md={10} lg={8}>
+              <Paper elevation={2} sx={{ p: { xs: 3, sm: 4 }, borderRadius: 3 }}>
+                <Typography variant="h4" gutterBottom sx={{ mb: 4, textAlign: 'center' }}>
                   Make Your Donation
                 </Typography>
 
                 {/* Donation Type */}
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" gutterBottom>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
                     Donation Type
                   </Typography>
                   <DonationTypeSelector />
                 </Box>
 
-                <Divider sx={{ my: 4 }} />
+                <Divider sx={{ my: 3 }} />
 
                 {/* Amount Selection */}
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" gutterBottom>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
                     Select Amount
                   </Typography>
                   <AmountSelector />
                 </Box>
 
-                <Divider sx={{ my: 4 }} />
+                <Divider sx={{ my: 3 }} />
 
                 {/* Donor Information */}
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" gutterBottom>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
                     Your Information
                   </Typography>
                   <DonorInformationForm />
                 </Box>
 
-                <Divider sx={{ my: 4 }} />
+                <Divider sx={{ my: 3 }} />
 
                 {/* Payment Method */}
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" gutterBottom>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
                     Payment Method
                   </Typography>
                   <PaymentMethodSelector
@@ -200,13 +201,23 @@ const DonationPage = () => {
                       console.error('Payment error:', error);
                     }}
                   />
+
+                  <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'grey.50', borderRadius: 2, mt: 2 }}>
+                    <Typography variant="h6" color="text.secondary">
+                      Payment System Maintenance
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      Our payment system is currently undergoing scheduled maintenance.
+                      Please check back later or contact the alumni office for alternative donation methods.
+                    </Typography>
+                  </Box>
                 </Box>
 
-                <Divider sx={{ my: 4 }} />
+                <Divider sx={{ my: 3 }} />
 
                 {/* Donor Recognition */}
-                <Box sx={{ mb: 4 }}>
-                  <Typography variant="h6" gutterBottom>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
                     Recognition Preferences
                   </Typography>
                   <DonorRecognitionForm />
@@ -214,8 +225,8 @@ const DonationPage = () => {
               </Paper>
             </Grid>
 
-            {/* Right Column - Summary & Info */}
-            <Grid item xs={12} md={4}>
+            {/* Summary Sidebar - Optional, can be shown below on mobile */}
+            <Grid item xs={12} md={10} lg={4}>
               {/* Donation Summary */}
               <Paper elevation={2} sx={{ p: 3, mb: 3, position: 'sticky', top: 20 }}>
                 <Typography variant="h6" gutterBottom>

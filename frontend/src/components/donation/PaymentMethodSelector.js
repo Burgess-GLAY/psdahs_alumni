@@ -12,7 +12,7 @@ import {
     Lock as LockIcon,
     PhoneIphone as PhoneIcon,
 } from '@mui/icons-material';
-import StripePaymentWrapper from './StripePaymentWrapper';
+// import StripePaymentWrapper from './StripePaymentWrapper';
 import MobileMoneyPayment from './MobileMoneyPayment';
 import OrangeMoneyPayment from './OrangeMoneyPayment';
 
@@ -142,7 +142,12 @@ const PaymentMethodSelector = ({ donationData, onSuccess, onError }) => {
             {/* Payment Form */}
             <Box>
                 {paymentMethod === 'card' && (
-                    <StripePaymentWrapper donationData={donationData} onSuccess={onSuccess} onError={onError} />
+                    // <StripePaymentWrapper donationData={donationData} onSuccess={onSuccess} onError={onError} />
+                    <Box sx={{ p: 3, textAlign: 'center', bgcolor: 'grey.50', borderRadius: 1 }}>
+                        <Typography variant="body1" color="text.secondary">
+                            Card payments are temporarily unavailable due to system maintenance.
+                        </Typography>
+                    </Box>
                 )}
                 {paymentMethod === 'liberia_mobile_money' && (
                     <MobileMoneyPayment donationData={donationData} onSuccess={onSuccess} onError={onError} />

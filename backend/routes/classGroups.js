@@ -22,14 +22,21 @@ router.use(protect);
 router.post('/:id/join', classGroupController.joinClassGroup);
 router.post('/:id/leave', classGroupController.leaveClassGroup);
 
-// Group management (group admins or site admins)
-router.post('/', classGroupController.createClassGroup);
-router.put('/:id', classGroupController.updateClassGroup);
-router.delete('/:id', classGroupController.deleteClassGroup);
-
 // Photo upload (requires multer middleware)
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/temp/' });
+
+// Group management (group admins or site admins)
+router.post('/', upload.fields([
+  { name: 'classImage', maxCount: 1 },
+  { name: 'bannerImage', maxCount: 1 }
+]), classGroupController.createClassGroup);
+router.put('/:id', upload.fields([
+  { name: 'classImage', maxCount: 1 },
+  { name: 'bannerImage', maxCount: 1 }
+]), classGroupController.updateClassGroup);
+router.delete('/:id', classGroupController.deleteClassGroup);
+
 router.post('/:id/upload-photo', upload.single('photo'), classGroupController.uploadClassPhoto);
 
 // Posts routes

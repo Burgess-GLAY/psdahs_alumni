@@ -8,9 +8,6 @@ import {
   Grid,
   Card,
   CardContent,
-  CardMedia,
-  CardActionArea,
-  CardActions,
   Button,
   Chip,
   TextField,
@@ -19,24 +16,19 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Pagination,
   Stack,
-  Divider,
-  ToggleButtonGroup,
-  ToggleButton,
   useTheme,
-  Alert
+  Alert,
+  Fade,
+  Pagination as MuiPagination
 } from '@mui/material';
 import {
   Search as SearchIcon,
   Event as EventIcon,
   CalendarMonth as CalendarIcon,
-  Place as PlaceIcon,
-  Group as GroupIcon,
-  ViewList as ViewListIcon,
-  GridView as GridViewIcon
+  Place as PlaceIcon
 } from '@mui/icons-material';
-import { format, parseISO } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import api from '../../services/api';
 
 const eventCategories = [
@@ -49,6 +41,25 @@ const eventCategories = [
   { value: 'other', label: 'Other' },
 ];
 
+// Helper function to get event image
+const getEventImage = (event) => {
+  if (event.image) return event.image;
+  if (event.featuredImage) return event.featuredImage;
+
+  const title = event.title?.toLowerCase() || '';
+
+  // Map specific event titles to images
+  if (title.includes('reunion') && title.includes('2024')) {
+    return '/images/reunion-2024.jpeg';
+  } else if (title.includes('reunion') && title.includes('2025')) {
+    return '/images/reunion-2025.jpg';
+  } else if (title.includes('fundraising') || title.includes('gala')) {
+    return '/images/funraising-gala.jpeg';
+  }
+
+  return '/images/event-placeholder.jpg';
+};
+
 const EventsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,12 +69,12 @@ const EventsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
-  const [view, setView] = useState('grid');
   const [page, setPage] = useState(1);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
+  const [fadeIn, setFadeIn] = useState(true);
   const itemsPerPage = 6;
 
   // Fetch events from API
@@ -72,6 +83,7 @@ const EventsPage = () => {
       try {
         setLoading(true);
         setError(null);
+        setFadeIn(false);
 
         const params = {
           page,
@@ -83,8 +95,18 @@ const EventsPage = () => {
 
         const response = await api.get('/events', { params });
 
-        setEvents(response.data.data || []);
+        const eventsData = response.data.data || [];
+        // Map images to events
+        const eventsWithImages = eventsData.map(event => ({
+          ...event,
+          image: getEventImage(event)
+        }));
+
+        setEvents(eventsWithImages);
         setTotalPages(response.data.totalPages || 1);
+
+        // Trigger fade in after data is loaded
+        setTimeout(() => setFadeIn(true), 50);
       } catch (err) {
         console.error('Failed to fetch events:', err);
         setError('Failed to load events. Please try again later.');
@@ -104,7 +126,7 @@ const EventsPage = () => {
     if (pageParam !== page) {
       setPage(pageParam);
     }
-  }, [location.search]);
+  }, [location.search, page]);
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -115,14 +137,8 @@ const EventsPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleEventClick = (eventId) => {
-    navigate(`/events/${eventId}`);
-  };
-
-  const handleRegisterClick = (eventId, e) => {
-    e.stopPropagation();
-    // Handle event registration
-    console.log(`Register for event ${eventId}`);
+  const handleEventClick = (eventId, eventImage) => {
+    navigate(`/events/${eventId}`, { state: { eventImage } });
   };
 
   if (loading) {
@@ -135,9 +151,9 @@ const EventsPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4, px: { xs: 2, sm: 3, md: 4 } }}>
-      {/* Header */}
-      <Box mb={4}>
-        <Typography variant="h3" component="h1" gutterBottom>
+      {/* Header - Centered */}
+      <Box mb={4} textAlign="center">
+        <Typography variant="h3" component="h1" gutterBottom sx={{ color: 'text.primary', fontWeight: 700 }}>
           Events
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
@@ -164,7 +180,7 @@ const EventsPage = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <FormControl fullWidth>
               <InputLabel id="category-filter-label">Category</InputLabel>
               <Select
@@ -181,7 +197,7 @@ const EventsPage = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={4}>
             <FormControl fullWidth>
               <InputLabel id="date-filter-label">Date</InputLabel>
               <Select
@@ -196,21 +212,6 @@ const EventsPage = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} md={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <ToggleButtonGroup
-              value={view}
-              exclusive
-              onChange={(e, newView) => newView && setView(newView)}
-              aria-label="view mode"
-            >
-              <ToggleButton value="grid" aria-label="grid view">
-                <GridViewIcon />
-              </ToggleButton>
-              <ToggleButton value="list" aria-label="list view">
-                <ViewListIcon />
-              </ToggleButton>
-            </ToggleButtonGroup>
-          </Grid>
         </Grid>
       </Box>
 
@@ -221,7 +222,7 @@ const EventsPage = () => {
         </Alert>
       )}
 
-      {/* Events Grid */}
+      {/* Events List - Horizontal Card Layout */}
       {events.length === 0 ? (
         <Box textAlign="center" py={8}>
           <EventIcon sx={{ fontSize: 60, color: 'text.disabled', mb: 2 }} />
@@ -232,265 +233,251 @@ const EventsPage = () => {
             Try adjusting your search or filter criteria
           </Typography>
         </Box>
-      ) : view === 'grid' ? (
-        <Grid container spacing={3}>
-          {events.map((event) => (
-            <Grid item key={event.id} xs={12} sm={6} lg={4}>
-              <Card
-                elevation={3}
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: theme.shadows[8],
-                  },
-                }}
-              >
-                <CardActionArea
-                  onClick={() => handleEventClick(event._id || event.id)}
-                  sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
-                >
-                  <Box sx={{ position: 'relative' }}>
-                    <CardMedia
-                      component="img"
-                      height="160"
-                      image={event.featuredImage || event.image || '/images/default-image.jpg'}
-                      alt={event.title}
-                    />
-                    {event.isFeatured && (
+      ) : (
+        <Fade in={fadeIn} timeout={300}>
+          <Grid container spacing={4}>
+            {events.map((event) => {
+              const eventDate = event.startDate ? new Date(event.startDate) : null;
+              const isValidEventDate = eventDate && isValid(eventDate);
+              const eventEndDate = event.endDate ? new Date(event.endDate) : null;
+              const isValidEndDate = eventEndDate && isValid(eventEndDate);
+
+              // Get category label
+              const categoryLabel = eventCategories.find(cat => cat.value === event.eventType)?.label ||
+                (event.eventType ? event.eventType.toUpperCase() : 'EVENT');
+
+              return (
+                <Grid item key={event._id || event.id} xs={12} md={6}>
+                  <Card
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      height: 240,
+                      transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                      cursor: 'pointer',
+                      bgcolor: 'white',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: theme.shadows[8],
+                      },
+                    }}
+                    onClick={() => handleEventClick(event._id || event.id, event.image)}
+                  >
+                    {/* Date Badge on Left */}
+                    <Box
+                      sx={{
+                        width: 100,
+                        minWidth: 100,
+                        bgcolor: 'primary.main',
+                        color: 'white',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: 2,
+                      }}
+                    >
+                      {isValidEventDate ? (
+                        <>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                              letterSpacing: 1,
+                              mb: 0.5,
+                            }}
+                          >
+                            {format(eventDate, 'MMM').toUpperCase()}
+                          </Typography>
+                          <Typography
+                            variant="h3"
+                            sx={{
+                              fontWeight: 700,
+                              lineHeight: 1,
+                              mb: 0.5,
+                            }}
+                          >
+                            {format(eventDate, 'd')}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '0.875rem',
+                            }}
+                          >
+                            {format(eventDate, 'yyyy')}
+                          </Typography>
+                        </>
+                      ) : (
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          TBA
+                        </Typography>
+                      )}
+                    </Box>
+
+                    {/* Content */}
+                    <CardContent sx={{ flex: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
+                      {/* Category Tag */}
                       <Chip
-                        label="Featured"
-                        color="primary"
+                        label={categoryLabel}
                         size="small"
                         sx={{
-                          position: 'absolute',
-                          top: 16,
-                          right: 16,
-                          fontWeight: 'bold',
+                          alignSelf: 'flex-start',
+                          bgcolor: 'transparent',
+                          color: 'primary.main',
+                          fontWeight: 700,
+                          fontSize: '0.7rem',
+                          height: 22,
+                          mb: 1,
+                          border: 'none',
+                          px: 0,
                         }}
                       />
-                    )}
-                    <Chip
-                      label={eventCategories.find(cat => cat.value === event.category)?.label || 'Event'}
-                      color="secondary"
-                      size="small"
-                      sx={{
-                        position: 'absolute',
-                        bottom: -16,
-                        left: 16,
-                        fontWeight: 'bold',
-                      }}
-                    />
-                  </Box>
-                  <CardContent sx={{ flexGrow: 1, pt: 3 }}>
-                    <Typography gutterBottom variant="h6" component="div">
-                      {event.title}
-                    </Typography>
-                    <Box display="flex" alignItems="center" mb={1}>
-                      <CalendarIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {format(parseISO(event.startDate), 'MMM d, yyyy • h:mm a')}
-                      </Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center" mb={2}>
-                      <PlaceIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-                      <Typography variant="body2" color="text.secondary">
-                        {event.location}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph>
-                      {event.description && event.description.length > 100
-                        ? `${event.description.substring(0, 100)}...`
-                        : event.description}
-                    </Typography>
-                    {event.capacity && (
-                      <Box display="flex" alignItems="center" mt="auto">
-                        <GroupIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-                        <Typography variant="caption" color="text.secondary">
-                          {event.registered || 0} / {event.capacity} registered
-                        </Typography>
-                      </Box>
-                    )}
-                  </CardContent>
-                </CardActionArea>
-                <CardActions sx={{ p: 2, pt: 0 }}>
-                  {event.registrationEnabled ? (
-                    <Button
-                      size="small"
-                      color="primary"
-                      variant={event.isRegistered ? 'outlined' : 'contained'}
-                      fullWidth
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRegisterClick(event._id || event.id, e);
-                      }}
-                      disabled={event.isRegistered}
-                    >
-                      {event.isRegistered ? 'Registered' : 'Register Now'}
-                    </Button>
-                  ) : (
-                    <Button
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                      fullWidth
-                      onClick={() => handleEventClick(event._id || event.id)}
-                    >
-                      View Details
-                    </Button>
-                  )}
-                </CardActions>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      ) : (
-        <Box>
-          {events.map((event, index) => (
-            <React.Fragment key={event._id || event.id}>
-              <Card
-                sx={{
-                  mb: 3,
-                  display: 'flex',
-                  flexDirection: { xs: 'column', md: 'row' },
-                  height: { md: 200 },
-                  overflow: 'hidden',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: theme.shadows[6],
-                  },
-                }}
-              >
-                <CardMedia
-                  component="div"
-                  sx={{
-                    width: { xs: '100%', md: 300 },
-                    height: { xs: 160, md: '100%' },
-                    position: 'relative',
-                    flexShrink: 0,
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={event.featuredImage || event.image || '/images/default-image.jpg'}
-                    alt={event.title}
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                    }}
-                  />
-                  {event.isFeatured && (
-                    <Chip
-                      label="Featured"
-                      color="primary"
-                      size="small"
-                      sx={{
-                        position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        fontWeight: 'bold',
-                      }}
-                    />
-                  )}
-                </CardMedia>
-                <Box sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                  <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
-                      <Typography variant="h6" component="div">
+
+                      {/* Title - Fixed height */}
+                      <Typography
+                        variant="h6"
+                        component="div"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '1.1rem',
+                          mb: 1,
+                          lineHeight: 1.3,
+                          height: '2.6rem',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          color: 'text.primary',
+                        }}
+                      >
                         {event.title}
                       </Typography>
-                      <Chip
-                        label={eventCategories.find(cat => cat.value === event.category)?.label || 'Event'}
-                        color="secondary"
-                        size="small"
-                        sx={{ ml: 2, flexShrink: 0 }}
-                      />
-                    </Box>
-                    <Box display="flex" flexWrap="wrap" gap={2} mb={1.5}>
-                      <Box display="flex" alignItems="center">
-                        <CalendarIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                        <Typography variant="body2" color="text.secondary">
-                          {format(parseISO(event.startDate), 'MMM d, yyyy • h:mm a')}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center">
-                        <PlaceIcon fontSize="small" color="action" sx={{ mr: 0.5 }} />
-                        <Typography variant="body2" color="text.secondary">
-                          {event.location}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" paragraph>
-                      {event.description}
-                    </Typography>
-                    {event.capacity && (
-                      <Box display="flex" alignItems="center" mt="auto">
-                        <GroupIcon fontSize="small" color="action" sx={{ mr: 1 }} />
-                        <Typography variant="caption" color="text.secondary">
-                          {event.registered || 0} / {event.capacity} registered • {event.isRegistered ? 'You are registered' : 'Spots available'}
-                        </Typography>
-                      </Box>
-                    )}
-                  </CardContent>
-                  <CardActions sx={{ p: 2, pt: 0, justifyContent: 'flex-end' }}>
-                    {event.registrationEnabled ? (
-                      <>
+
+                      {/* Description - Fixed height */}
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          mb: 1.5,
+                          lineHeight: 1.5,
+                          height: '3rem',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {event.description || 'Join us for this exciting event.'}
+                      </Typography>
+
+                      {/* Time and Location - Fixed height */}
+                      <Stack direction="row" spacing={2} mb={2} sx={{ color: 'text.secondary', height: '1.5rem' }}>
+                        <Box display="flex" alignItems="center">
+                          <CalendarIcon fontSize="small" sx={{ mr: 0.5, fontSize: 16, color: 'text.disabled' }} />
+                          <Typography variant="body2" fontSize="0.813rem" noWrap>
+                            {isValidEventDate && isValidEndDate
+                              ? `${format(eventDate, 'hh:mm a')} - ${format(eventEndDate, 'hh:mm a')}`
+                              : isValidEventDate
+                                ? format(eventDate, 'hh:mm a')
+                                : 'TBA'}
+                          </Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center">
+                          <PlaceIcon fontSize="small" sx={{ mr: 0.5, fontSize: 16, color: 'text.disabled' }} />
+                          <Typography
+                            variant="body2"
+                            fontSize="0.813rem"
+                            noWrap
+                            sx={{ maxWidth: 180 }}
+                          >
+                            {event.location || 'TBA'}
+                          </Typography>
+                        </Box>
+                      </Stack>
+
+                      {/* Action Buttons - Fixed height */}
+                      <Stack direction="row" spacing={2} mt="auto">
                         <Button
-                          size="small"
+                          variant="contained"
                           color="primary"
-                          variant={event.isRegistered ? 'outlined' : 'contained'}
+                          sx={{
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            px: 2.5,
+                            py: 0.75,
+                            height: '36px',
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleRegisterClick(event._id || event.id, e);
+                            handleEventClick(event._id || event.id, event.image);
                           }}
-                          disabled={event.isRegistered}
                         >
-                          {event.isRegistered ? 'Registered' : 'Register Now'}
+                          Learn More
                         </Button>
                         <Button
-                          size="small"
-                          onClick={() => handleEventClick(event._id || event.id)}
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<CalendarIcon sx={{ fontSize: 18 }} />}
+                          sx={{
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            fontSize: '0.875rem',
+                            px: 2,
+                            py: 0.75,
+                            height: '36px',
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Add to calendar functionality
+                            if (isValidEventDate) {
+                              const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.title)}&dates=${format(eventDate, "yyyyMMdd'T'HHmmss")}/${isValidEndDate ? format(eventEndDate, "yyyyMMdd'T'HHmmss") : format(eventDate, "yyyyMMdd'T'HHmmss")}&details=${encodeURIComponent(event.description || '')}&location=${encodeURIComponent(event.location || '')}`;
+                              window.open(calendarUrl, '_blank');
+                            }
+                          }}
                         >
-                          View Details
+                          Add to Calendar
                         </Button>
-                      </>
-                    ) : (
-                      <Button
-                        size="small"
-                        color="primary"
-                        variant="outlined"
-                        onClick={() => handleEventClick(event._id || event.id)}
-                      >
-                        View Details
-                      </Button>
-                    )}
-                  </CardActions>
-                </Box>
-              </Card>
-              {index < events.length - 1 && <Divider sx={{ my: 2 }} />}
-            </React.Fragment>
-          ))}
-        </Box>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              );
+            })}
+          </Grid>
+        </Fade>
       )}
 
-      {/* Pagination */}
+      {/* Modern Pagination */}
       {totalPages > 1 && (
-        <Box mt={4} display="flex" justifyContent="center">
+        <Box mt={6} display="flex" justifyContent="center">
           <Stack spacing={2}>
-            <Pagination
+            <MuiPagination
               count={totalPages}
               page={page}
               onChange={handlePageChange}
               color="primary"
+              size="large"
               showFirstButton
               showLastButton
               siblingCount={1}
               boundaryCount={1}
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                  },
+                  '&.Mui-selected': {
+                    transform: 'scale(1.15)',
+                  },
+                },
+              }}
             />
           </Stack>
         </Box>

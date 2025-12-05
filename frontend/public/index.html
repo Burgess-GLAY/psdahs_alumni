@@ -25,6 +25,63 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>React App</title>
+    <script>
+      // FIXED: Suppress React DevTools cross-origin errors before React loads
+      // This runs before React Error Overlay can intercept the error
+      (function() {
+        'use strict';
+        
+        function isCrossOriginError(msg) {
+          if (!msg) return false;
+          const msgStr = String(msg);
+          return msgStr.includes('$$typeof') || 
+                 msgStr.includes('cross-origin frame') ||
+                 msgStr.includes('SecurityError');
+        }
+        
+        // Intercept errors at the earliest possible moment
+        const originalError = window.Error;
+        window.Error = function(...args) {
+          const err = new originalError(...args);
+          if (isCrossOriginError(err.message)) {
+            err.__suppressed = true;
+          }
+          return err;
+        };
+        window.Error.prototype = originalError.prototype;
+        
+        // Suppress error events before React can catch them
+        window.addEventListener('error', function(event) {
+          if (isCrossOriginError(event.message)) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            return false;
+          }
+        }, true);
+        
+        // Suppress unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(event) {
+          if (event.reason && isCrossOriginError(event.reason.message || event.reason)) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+          }
+        }, true);
+        
+        // Patch window.onerror
+        const originalOnError = window.onerror;
+        window.onerror = function(msg, url, line, col, error) {
+          if (isCrossOriginError(msg)) {
+            return true; // Suppress error
+          }
+          if (originalOnError) {
+            return originalOnError.apply(this, arguments);
+          }
+          return false;
+        };
+      })();
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

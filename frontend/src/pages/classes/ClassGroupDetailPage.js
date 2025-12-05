@@ -136,7 +136,7 @@ const ClassGroupDetailPage = () => {
                 </Alert>
                 <Button
                     startIcon={<ArrowBackIcon />}
-                    onClick={() => navigate('/class-groups')}
+                    onClick={() => navigate('/classes')}
                 >
                     Back to Class Groups
                 </Button>
@@ -183,7 +183,7 @@ const ClassGroupDetailPage = () => {
                     <Box sx={{ pb: 3, color: 'white' }}>
                         {/* Back Button */}
                         <IconButton
-                            onClick={() => navigate('/class-groups')}
+                            onClick={() => navigate('/classes')}
                             sx={{
                                 color: 'white',
                                 mb: 2,

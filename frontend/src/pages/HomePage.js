@@ -24,6 +24,9 @@ import {
   School as SchoolIcon,
   ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
+import EventCard from '../components/events/EventCard';
+import TestimonialsSection from '../components/home/TestimonialsSection';
+import AlumniStatsSection from '../components/home/AlumniStatsSection';
 
 const features = [
   {
@@ -54,6 +57,23 @@ const HomePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Helper function to map event images based on title
+  const getEventImage = (event) => {
+    const title = event.title?.toLowerCase() || '';
+
+    // Map specific event titles to images
+    if (title.includes('reunion') && title.includes('2024')) {
+      return '/images/reunion-2024.jpeg';
+    } else if (title.includes('reunion') && title.includes('2025')) {
+      return '/images/reunion-2025.jpg';
+    } else if (title.includes('fundraising') || title.includes('gala')) {
+      return '/images/funraising-gala.jpeg';
+    }
+
+    // Return the event's existing image or default
+    return event.image || '/images/event-placeholder.jpg';
+  };
+
   // Fetch featured events from API (max 3 for homepage)
   // Falls back to upcoming events if no featured events exist
   useEffect(() => {
@@ -67,11 +87,21 @@ const HomePage = () => {
         const featuredEvents = response.data.data || [];
 
         if (featuredEvents.length > 0) {
-          setEvents(featuredEvents);
+          // Map images to events
+          const eventsWithImages = featuredEvents.map(event => ({
+            ...event,
+            image: getEventImage(event)
+          }));
+          setEvents(eventsWithImages);
         } else {
           // Fallback to upcoming events if no featured events
           const upcomingResponse = await api.get('/events/upcoming?limit=3');
-          setEvents(upcomingResponse.data.data || []);
+          const upcomingEvents = upcomingResponse.data.data || [];
+          const eventsWithImages = upcomingEvents.map(event => ({
+            ...event,
+            image: getEventImage(event)
+          }));
+          setEvents(eventsWithImages);
         }
       } catch (err) {
         console.error('Failed to fetch events:', err);
@@ -173,68 +203,8 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* About Us Section (moved to left) */}
-      <Box bgcolor="primary.50" py={8}>
-        <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
-          <Grid container spacing={6} alignItems="center">
-            {/* Text first */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="overline" color="primary" fontWeight="bold">
-                ABOUT US
-              </Typography>
-              <Typography variant="h3" component="h2" gutterBottom>
-                Our Alumni Community
-              </Typography>
-              <Typography paragraph sx={{ mb: 3, fontSize: '1.1rem' }}>
-                The PSDAHS Alumni Association connects generations of graduates, fostering lifelong relationships and supporting our alma mater's legacy. Join our growing network of successful professionals making a difference.
-              </Typography>
-              <Button
-                component={Link}
-                to="/about"
-                variant="contained"
-                color="primary"
-                size="large"
-                endIcon={<ArrowForwardIcon />}
-                sx={{ mt: 2 }}
-              >
-                Learn More About Us
-              </Button>
-              {!isAuthenticated && (
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  size="large"
-                  onClick={openRegister}
-                  sx={{ cursor: 'pointer', mt: 2 }}
-                >
-                  Join Now
-                </Button>
-              )}
-            </Grid>
-
-            {/* Image second */}
-            <Grid item xs={12} md={6}>
-              <Box
-                component="img"
-                src="/images/meet and greet at AUTHENTIC TASTE PICTURE 1.jpeg"
-                alt="About PSDAHS Alumni"
-                sx={{
-                  width: '100%',
-                  height: '400px',
-                  objectFit: 'cover',
-                  borderRadius: 3,
-                  boxShadow: theme.shadows[8],
-                  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: theme.shadows[16],
-                  },
-                }}
-              />
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+      {/* About Us Section with Stats */}
+      <AlumniStatsSection />
 
       {/* Features Section */}
       <Container maxWidth="xl" sx={{ py: 8, px: { xs: 2, sm: 3, md: 4 } }}>
@@ -245,13 +215,14 @@ const HomePage = () => {
           Our alumni network helps you stay connected with your alma mater and fellow graduates.
         </Typography>
 
-        <Grid container spacing={4}>
+        <Grid container spacing={4} sx={{ display: 'flex', flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
           {features.map((feature, index) => (
-            <Grid item xs={12} md={4} key={index}>
+            <Grid item xs={12} sm={12} md={4} key={index} sx={{ display: 'flex' }}>
               <Card
                 elevation={3}
                 sx={{
                   height: '100%',
+                  width: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   transition: 'transform 0.3s',
@@ -300,6 +271,9 @@ const HomePage = () => {
         </Grid>
       </Container>
 
+      {/* Testimonials Section */}
+      <TestimonialsSection />
+
       {/* Upcoming Events Section */}
       <Box bgcolor="grey.50" py={8}>
         <Container maxWidth="xl" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
@@ -338,57 +312,10 @@ const HomePage = () => {
               </Typography>
             </Box>
           ) : (
-            <Grid container spacing={3}>
+            <Grid container spacing={4} sx={{ display: 'flex', flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
               {events.map((event) => (
-                <Grid item xs={12} md={4} key={event._id}>
-                  <Card sx={{
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: theme.shadows[12],
-                    },
-                  }}>
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={event.image || '/images/event-placeholder.jpg'}
-                      alt={event.title}
-                      sx={{
-                        objectFit: 'cover',
-                      }}
-                    />
-                    <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="h6" component="h3" gutterBottom>
-                        {event.title}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary" paragraph>
-                        {event.description || 'No description available.'}
-                      </Typography>
-                      <Button
-                        component={Link}
-                        to={`/events/${event._id}`}
-                        onClick={() =>
-                          analyticsService.trackCustomEvent('learn_more_click', {
-                            section: 'Upcoming Events',
-                            destination: `/events/${event._id}`,
-                            eventTitle: event.title
-                          })
-                        }
-                        color="primary"
-                        size="small"
-                        variant="contained"
-                        sx={{
-                          mt: 'auto',
-                          borderRadius: 2,
-                        }}
-                      >
-                        Learn More
-                      </Button>
-                    </CardContent>
-                  </Card>
+                <Grid item xs={12} sm={12} md={4} key={event._id} sx={{ display: 'flex' }}>
+                  <EventCard event={event} />
                 </Grid>
               ))}
             </Grid>

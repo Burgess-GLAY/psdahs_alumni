@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -87,8 +87,10 @@ function a11yProps(index) {
 const EventDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const theme = useTheme();
   const [event, setEvent] = useState(null);
+  const eventImageFromState = location.state?.eventImage;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState(0);
@@ -246,7 +248,7 @@ const EventDetailPage = () => {
           <CardMedia
             component="img"
             height="400"
-            image={event.featuredImage || '/images/default-image.jpg'}
+            image={eventImageFromState || event.featuredImage || event.image || '/images/event-placeholder.jpg'}
             alt={event.title}
             sx={{
               objectFit: 'cover',
@@ -351,18 +353,10 @@ const EventDetailPage = () => {
                   scrollButtons="auto"
                 >
                   <Tab label="Details" {...a11yProps(0)} />
-                  {event.agenda && event.agenda.length > 0 && (
-                    <Tab label="Agenda" {...a11yProps(1)} />
-                  )}
-                  {event.speakers && event.speakers.length > 0 && (
-                    <Tab label="Speakers" {...a11yProps(2)} />
-                  )}
-                  {event.faq && event.faq.length > 0 && (
-                    <Tab label="FAQ" {...a11yProps(3)} />
-                  )}
-                  {event.locationDetails && (
-                    <Tab label="Location" {...a11yProps(4)} />
-                  )}
+                  <Tab label="Agenda" {...a11yProps(1)} />
+                  <Tab label="Speakers" {...a11yProps(2)} />
+                  <Tab label="FAQ" {...a11yProps(3)} />
+                  <Tab label="Location" {...a11yProps(4)} />
                 </Tabs>
 
                 <TabPanel value={tabValue} index={0}>
@@ -409,9 +403,9 @@ const EventDetailPage = () => {
                   </List>
                 </TabPanel>
 
-                {event.agenda && event.agenda.length > 0 && (
-                  <TabPanel value={tabValue} index={1}>
-                    <Typography variant="h6" gutterBottom>Event Agenda</Typography>
+                <TabPanel value={tabValue} index={1}>
+                  <Typography variant="h6" gutterBottom>Event Agenda</Typography>
+                  {event.agenda && event.agenda.length > 0 ? (
                     <List>
                       {event.agenda
                         .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -451,12 +445,16 @@ const EventDetailPage = () => {
                           </React.Fragment>
                         ))}
                     </List>
-                  </TabPanel>
-                )}
+                  ) : (
+                    <Alert severity="info">
+                      No agenda has been published for this event yet. Please check back later or contact the organizer for more information.
+                    </Alert>
+                  )}
+                </TabPanel>
 
-                {event.speakers && event.speakers.length > 0 && (
-                  <TabPanel value={tabValue} index={2}>
-                    <Typography variant="h6" gutterBottom>Speakers</Typography>
+                <TabPanel value={tabValue} index={2}>
+                  <Typography variant="h6" gutterBottom>Speakers</Typography>
+                  {event.speakers && event.speakers.length > 0 ? (
                     <Grid container spacing={3}>
                       {event.speakers
                         .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -485,12 +483,16 @@ const EventDetailPage = () => {
                           </Grid>
                         ))}
                     </Grid>
-                  </TabPanel>
-                )}
+                  ) : (
+                    <Alert severity="info">
+                      No speakers have been announced for this event yet. Please check back later for updates.
+                    </Alert>
+                  )}
+                </TabPanel>
 
-                {event.faq && event.faq.length > 0 && (
-                  <TabPanel value={tabValue} index={3}>
-                    <Typography variant="h6" gutterBottom>Frequently Asked Questions</Typography>
+                <TabPanel value={tabValue} index={3}>
+                  <Typography variant="h6" gutterBottom>Frequently Asked Questions</Typography>
+                  {event.faq && event.faq.length > 0 ? (
                     <Box mt={2}>
                       {event.faq
                         .sort((a, b) => (a.order || 0) - (b.order || 0))
@@ -505,75 +507,90 @@ const EventDetailPage = () => {
                           </Accordion>
                         ))}
                     </Box>
-                  </TabPanel>
-                )}
+                  ) : (
+                    <Alert severity="info">
+                      No FAQs are available for this event at the moment. If you have questions, please contact the organizer.
+                    </Alert>
+                  )}
+                </TabPanel>
 
-                {event.locationDetails && (
-                  <TabPanel value={tabValue} index={4}>
-                    <Typography variant="h6" gutterBottom>Event Location</Typography>
-                    {event.locationDetails.venueName && (
-                      <Typography variant="subtitle1" fontWeight="medium" paragraph>
-                        {event.locationDetails.venueName}
-                      </Typography>
-                    )}
-                    {event.locationDetails.address && (
-                      <Typography paragraph>
-                        {event.locationDetails.address.street && `${event.locationDetails.address.street}`}
-                        {event.locationDetails.address.street && <br />}
-                        {event.locationDetails.address.city && `${event.locationDetails.address.city}, `}
-                        {event.locationDetails.address.state && `${event.locationDetails.address.state} `}
-                        {event.locationDetails.address.zipCode}
-                        {event.locationDetails.address.country && <br />}
-                        {event.locationDetails.address.country}
-                      </Typography>
-                    )}
+                <TabPanel value={tabValue} index={4}>
+                  <Typography variant="h6" gutterBottom>Event Location</Typography>
+                  {event.locationDetails ? (
+                    <>
+                      {event.locationDetails.venueName && (
+                        <Typography variant="subtitle1" fontWeight="medium" paragraph>
+                          {event.locationDetails.venueName}
+                        </Typography>
+                      )}
+                      {event.locationDetails.address && (
+                        <Typography paragraph>
+                          {event.locationDetails.address.street && `${event.locationDetails.address.street}`}
+                          {event.locationDetails.address.street && <br />}
+                          {event.locationDetails.address.city && `${event.locationDetails.address.city}, `}
+                          {event.locationDetails.address.state && `${event.locationDetails.address.state} `}
+                          {event.locationDetails.address.zipCode}
+                          {event.locationDetails.address.country && <br />}
+                          {event.locationDetails.address.country}
+                        </Typography>
+                      )}
 
-                    {event.locationDetails.directions && (
-                      <Box mt={3}>
-                        <Typography variant="subtitle2" gutterBottom>Directions:</Typography>
-                        <Typography variant="body2" paragraph>{event.locationDetails.directions}</Typography>
-                      </Box>
-                    )}
-
-                    {event.locationDetails.parkingInfo && (
-                      <Box mt={2}>
-                        <Typography variant="subtitle2" gutterBottom>Parking Information:</Typography>
-                        <Typography variant="body2" paragraph>{event.locationDetails.parkingInfo}</Typography>
-                      </Box>
-                    )}
-
-                    {event.locationDetails.coordinates?.lat && event.locationDetails.coordinates?.lng && (
-                      <>
-                        <Box height={400} borderRadius={2} overflow="hidden" mt={3} mb={3}>
-                          <MapContainer
-                            center={[event.locationDetails.coordinates.lat, event.locationDetails.coordinates.lng]}
-                            zoom={15}
-                            style={{ height: '100%', width: '100%' }}
-                            scrollWheelZoom={false}
-                          >
-                            <TileLayer
-                              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            />
-                            <Marker position={[event.locationDetails.coordinates.lat, event.locationDetails.coordinates.lng]}>
-                              <Popup>{event.locationDetails.venueName || event.location}</Popup>
-                            </Marker>
-                          </MapContainer>
+                      {event.locationDetails.directions && (
+                        <Box mt={3}>
+                          <Typography variant="subtitle2" gutterBottom>Directions:</Typography>
+                          <Typography variant="body2" paragraph>{event.locationDetails.directions}</Typography>
                         </Box>
+                      )}
 
-                        <Button
-                          variant="outlined"
-                          color="primary"
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${event.locationDetails.coordinates.lat},${event.locationDetails.coordinates.lng}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Get Directions
-                        </Button>
-                      </>
-                    )}
-                  </TabPanel>
-                )}
+                      {event.locationDetails.parkingInfo && (
+                        <Box mt={2}>
+                          <Typography variant="subtitle2" gutterBottom>Parking Information:</Typography>
+                          <Typography variant="body2" paragraph>{event.locationDetails.parkingInfo}</Typography>
+                        </Box>
+                      )}
+
+                      {event.locationDetails.coordinates?.lat && event.locationDetails.coordinates?.lng && (
+                        <>
+                          <Box height={400} borderRadius={2} overflow="hidden" mt={3} mb={3}>
+                            <MapContainer
+                              center={[event.locationDetails.coordinates.lat, event.locationDetails.coordinates.lng]}
+                              zoom={15}
+                              style={{ height: '100%', width: '100%' }}
+                              scrollWheelZoom={false}
+                            >
+                              <TileLayer
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                              />
+                              <Marker position={[event.locationDetails.coordinates.lat, event.locationDetails.coordinates.lng]}>
+                                <Popup>{event.locationDetails.venueName || event.location}</Popup>
+                              </Marker>
+                            </MapContainer>
+                          </Box>
+
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${event.locationDetails.coordinates.lat},${event.locationDetails.coordinates.lng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Get Directions
+                          </Button>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Typography variant="subtitle1" fontWeight="medium" paragraph>
+                        {event.location}
+                      </Typography>
+                      <Alert severity="info" sx={{ mt: 2 }}>
+                        Detailed location information including directions and map will be provided closer to the event date.
+                      </Alert>
+                    </>
+                  )}
+                </TabPanel>
               </Box>
             </Grid>
 

@@ -441,7 +441,7 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
             >
                 {({ values, errors, touched, setFieldValue, handleChange, handleBlur }) => (
                     <Form>
-                        <DialogContent dividers>
+                        <DialogContent dividers sx={{ maxHeight: '80vh', overflowY: 'auto' }}>
                             <Grid container spacing={3}>
                                 {/* Basic Information Section */}
                                 <Grid item xs={12}>

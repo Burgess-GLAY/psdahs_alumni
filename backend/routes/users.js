@@ -4,6 +4,13 @@ const { protect, admin } = require('../middleware/auth');
 const userController = require('../controllers/userController');
 
 /**
+ * @route   GET /api/users/count
+ * @desc    Get total user count
+ * @access  Public
+ */
+router.get('/count', userController.getUserCount);
+
+/**
  * @route   GET /api/users/public-stats
  * @desc    Get public user statistics (count only)
  * @access  Public

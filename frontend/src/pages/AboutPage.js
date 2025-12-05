@@ -224,7 +224,7 @@ const AboutPage = () => {
           </Typography>
         </Box>
 
-        {/* Mission & Vision */}
+        {/* Mission & Vision - One Line */}
         <Grid container spacing={4} sx={{ mb: 8 }}>
           <Grid item xs={12} md={6}>
             <FeatureCard>
@@ -297,10 +297,10 @@ const AboutPage = () => {
                 <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
                   Our Impact
                 </Typography>
-                <Grid container spacing={3}>
+                <Grid container spacing={3} justifyContent="center">
                   {achievements.map((achievement, index) => (
                     <Grid item xs={12} sm={6} key={index}>
-                      <Box display="flex" alignItems="center">
+                      <Box display="flex" alignItems="center" justifyContent="center">
                         <CheckCircleIcon color="primary" sx={{ mr: 1 }} />
                         <Typography variant="body1">{achievement}</Typography>
                       </Box>
@@ -312,14 +312,14 @@ const AboutPage = () => {
           </Grid>
         </Box>
 
-        {/* Team Section */}
+        {/* Team Section - Three per row */}
         <Box sx={{ mb: 8 }}>
           <SectionTitle variant="h4" component="h2" sx={{ textAlign: 'center', mb: 6 }}>
             Meet Our Leadership Team
           </SectionTitle>
-          <Grid container spacing={4}>
+          <Grid container spacing={4} justifyContent="center">
             {teamMembers.map((member, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
+              <Grid item xs={12} sm={6} md={4} key={index}>
                 <TeamMemberCard elevation={3}>
                   <Avatar
                     src={member.image}
@@ -449,12 +449,12 @@ const AboutPage = () => {
           </Box>
         </Box>
 
-        {/* Contact Section */}
+        {/* Contact Section - Form on Right, Vertical */}
         <Box>
           <SectionTitle variant="h4" component="h2" sx={{ textAlign: 'center', mb: 6 }}>
             Get In Touch
           </SectionTitle>
-          <Grid container spacing={4}>
+          <Grid container spacing={4} alignItems="flex-start">
             <Grid item xs={12} md={6}>
               <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
                 Contact Information
@@ -530,65 +530,51 @@ const AboutPage = () => {
               </Box>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
+              <Paper elevation={3} sx={{ p: 3, borderRadius: 2, maxWidth: 500 }}>
                 <Typography variant="h6" component="h3" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
                   Send Us a Message
                 </Typography>
                 <form onSubmit={handleSubmit} noValidate>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Your Name"
-                        variant="outlined"
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Your Email"
-                        type="email"
-                        variant="outlined"
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Subject"
-                        variant="outlined"
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label="Your Message"
-                        multiline
-                        rows={4}
-                        variant="outlined"
-                        margin="normal"
-                        required
-                      />
-                    </Grid>
-                    <Grid item xs={12}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        size="large"
-                        fullWidth
-                        sx={{ mt: 2 }}
-                        aria-label="Send message"
-                      >
-                        Send Message
-                      </Button>
-                    </Grid>
-                  </Grid>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      fullWidth
+                      label="Your Name"
+                      variant="outlined"
+                      required
+                    />
+                    <TextField
+                      fullWidth
+                      label="Your Email"
+                      type="email"
+                      variant="outlined"
+                      required
+                    />
+                    <TextField
+                      fullWidth
+                      label="Subject"
+                      variant="outlined"
+                      required
+                    />
+                    <TextField
+                      fullWidth
+                      label="Your Message"
+                      multiline
+                      rows={4}
+                      variant="outlined"
+                      required
+                    />
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                      size="large"
+                      fullWidth
+                      sx={{ mt: 1 }}
+                      aria-label="Send message"
+                    >
+                      Send Message
+                    </Button>
+                  </Box>
                 </form>
               </Paper>
             </Grid>

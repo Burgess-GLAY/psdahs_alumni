@@ -25,7 +25,7 @@ import {
     Image as ImageIcon
 } from '@mui/icons-material';
 import classGroupService from '../../services/classGroupService';
-import { showNotification } from '../../utils/notifications';
+import { showError, showSuccess } from '../../utils/notifications';
 
 const AdminClassPhotosPage = () => {
     const [classGroups, setClassGroups] = useState([]);
@@ -75,13 +75,13 @@ const AdminClassPhotosPage = () => {
         if (file) {
             // Validate file type
             if (!file.type.startsWith('image/')) {
-                showNotification('error', 'Please select an image file');
+                showError('Please select an image file');
                 return;
             }
 
             // Validate file size (2MB max)
             if (file.size > 2 * 1024 * 1024) {
-                showNotification('error', 'File size must be less than 2MB');
+                showError('File size must be less than 2MB');
                 return;
             }
 
@@ -108,7 +108,7 @@ const AdminClassPhotosPage = () => {
 
             const response = await classGroupService.uploadClassPhoto(selectedGroup._id, formData);
 
-            showNotification('success', `Photo uploaded successfully for ${selectedGroup.name}`);
+            showSuccess(`Photo uploaded successfully for ${selectedGroup.name}`);
 
             // Update the class group in the list
             setClassGroups(classGroups.map(g =>
@@ -120,7 +120,7 @@ const AdminClassPhotosPage = () => {
             handleCloseUploadDialog();
         } catch (err) {
             console.error('Error uploading photo:', err);
-            showNotification('error', err.response?.data?.error || 'Failed to upload photo');
+            showError(err.response?.data?.error || 'Failed to upload photo');
         } finally {
             setUploading(false);
         }

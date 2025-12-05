@@ -41,10 +41,10 @@ const ClassGroupList = () => {
   const [yearFilter, setYearFilter] = useState('all');
   const [isLeaving, setIsLeaving] = useState(false);
   const [leavingGroupId, setLeavingGroupId] = useState(null);
-  
+
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.auth);
-  
+
   // Fetch user's class groups
   const fetchMyClassGroups = async () => {
     try {
@@ -57,7 +57,7 @@ const ClassGroupList = () => {
       setLoading(false);
     }
   };
-  
+
   // Fetch available class groups to join
   const fetchAvailableGroups = async () => {
     try {
@@ -67,7 +67,7 @@ const ClassGroupList = () => {
       console.error('Error fetching available groups:', error);
     }
   };
-  
+
   // Handle joining a class group
   const handleJoinGroup = async (groupId) => {
     try {
@@ -84,14 +84,14 @@ const ClassGroupList = () => {
       toast.error(error.response?.data?.message || 'Failed to join class group');
     }
   };
-  
+
   // Handle leaving a class group
   const handleLeaveGroup = async (groupId) => {
     if (!window.confirm('Are you sure you want to leave this class group?')) return;
-    
+
     setIsLeaving(true);
     setLeavingGroupId(groupId);
-    
+
     try {
       await axios.post(`/api/me/class-groups/${groupId}/leave`);
       await fetchMyClassGroups();
@@ -106,13 +106,13 @@ const ClassGroupList = () => {
       setLeavingGroupId(null);
     }
   };
-  
+
   // Open join dialog and fetch available groups
   const handleOpenJoinDialog = async () => {
     setJoinDialogOpen(true);
     await fetchAvailableGroups();
   };
-  
+
   // Filter available groups based on search and year filter
   const filteredAvailableGroups = availableGroups.filter(group => {
     const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -120,15 +120,15 @@ const ClassGroupList = () => {
     const matchesYear = yearFilter === 'all' || group.graduationYear.toString() === yearFilter;
     return matchesSearch && matchesYear;
   });
-  
+
   // Get unique years for filter
   const availableYears = [...new Set(availableGroups.map(g => g.graduationYear))].sort((a, b) => b - a);
-  
+
   // Fetch data on component mount
   useEffect(() => {
     fetchMyClassGroups();
   }, []);
-  
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" my={4}>
@@ -136,7 +136,7 @@ const ClassGroupList = () => {
       </Box>
     );
   }
-  
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
@@ -152,7 +152,7 @@ const ClassGroupList = () => {
           Join a Class Group
         </Button>
       </Box>
-      
+
       {classGroups.length === 0 ? (
         <Box textAlign="center" py={6}>
           <SchoolIcon color="action" style={{ fontSize: 60, opacity: 0.5 }} />
@@ -162,8 +162,8 @@ const ClassGroupList = () => {
           <Typography color="textSecondary" paragraph>
             Join your class group to connect with your batchmates and stay updated.
           </Typography>
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             color="primary"
             startIcon={<GroupAddIcon />}
             onClick={handleOpenJoinDialog}
@@ -219,7 +219,7 @@ const ClassGroupList = () => {
                     fullWidth
                     variant="outlined"
                     color="primary"
-                    href={`/class-groups/${group._id}`}
+                    href={`/classes/${group._id}`}
                     sx={{ mb: 1 }}
                   >
                     View Group
@@ -240,7 +240,7 @@ const ClassGroupList = () => {
           ))}
         </Grid>
       )}
-      
+
       {/* Join Class Group Dialog */}
       <Dialog open={joinDialogOpen} onClose={() => setJoinDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>Join a Class Group</DialogTitle>
@@ -275,7 +275,7 @@ const ClassGroupList = () => {
                 ))}
               </TextField>
             </Box>
-            
+
             {filteredAvailableGroups.length === 0 ? (
               <Box textAlign="center" py={4}>
                 <SchoolIcon color="action" style={{ fontSize: 60, opacity: 0.5 }} />
@@ -283,7 +283,7 @@ const ClassGroupList = () => {
                   No class groups found
                 </Typography>
                 <Typography color="textSecondary">
-                  {searchTerm || yearFilter !== 'all' 
+                  {searchTerm || yearFilter !== 'all'
                     ? 'Try adjusting your search criteria'
                     : 'All available class groups have been joined.'}
                 </Typography>
@@ -292,16 +292,16 @@ const ClassGroupList = () => {
               <Grid container spacing={2}>
                 {filteredAvailableGroups.map((group) => (
                   <Grid item xs={12} key={group._id}>
-                    <Box 
-                      display="flex" 
-                      alignItems="center" 
-                      p={2} 
-                      border={1} 
+                    <Box
+                      display="flex"
+                      alignItems="center"
+                      p={2}
+                      border={1}
                       borderColor="divider"
                       borderRadius={1}
                     >
-                      <Avatar 
-                        src={group.image} 
+                      <Avatar
+                        src={group.image}
                         alt={group.name}
                         sx={{ width: 60, height: 60, mr: 2 }}
                       >
@@ -316,8 +316,8 @@ const ClassGroupList = () => {
                           </Typography>
                         </Box>
                       </Box>
-                      <Button 
-                        variant="contained" 
+                      <Button
+                        variant="contained"
                         color="primary"
                         onClick={() => handleJoinGroup(group._id)}
                         disabled={group.isMember}

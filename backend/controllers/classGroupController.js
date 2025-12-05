@@ -201,23 +201,52 @@ const getClassGroupById = async (req, res, next) => {
 // @access  Private
 const createClassGroup = async (req, res, next) => {
   try {
-    const { name, description, graduationYear, coverImage, isPublic, tags } = req.body;
+    const { name, description, graduationYear, motto, isPublic, tags } = req.body;
 
     // Check if a group for this year already exists
+    const groupName = name || `Class of ${graduationYear}`;
     const existingGroup = await ClassGroup.findOne({
       graduationYear,
-      name: { $regex: new RegExp(`^${name}$`, 'i') }
+      name: { $regex: new RegExp(`^${groupName}$`, 'i') }
     });
 
     if (existingGroup) {
       return next(new ErrorResponse('A group with this name already exists for this graduation year', 400));
     }
 
+    // Handle image uploads
+    let coverImageUrl = null;
+    let bannerImageUrl = null;
+
+    if (req.files) {
+      const imageService = require('../services/imageService');
+
+      // Upload class image
+      if (req.files.classImage && req.files.classImage[0]) {
+        const classImageResult = await imageService.uploadClassPhoto(
+          req.files.classImage[0],
+          graduationYear
+        );
+        coverImageUrl = classImageResult.urls.display;
+      }
+
+      // Upload banner image
+      if (req.files.bannerImage && req.files.bannerImage[0]) {
+        const bannerImageResult = await imageService.uploadClassPhoto(
+          req.files.bannerImage[0],
+          graduationYear
+        );
+        bannerImageUrl = bannerImageResult.urls.full;
+      }
+    }
+
     const group = await ClassGroup.create({
-      name,
-      description,
+      name: groupName,
+      description: description || '',
       graduationYear,
-      coverImage,
+      motto: motto || '',
+      coverImage: coverImageUrl,
+      bannerImage: bannerImageUrl,
       isPublic: isPublic !== undefined ? isPublic : true,
       tags,
       admins: [req.user.id],
@@ -259,15 +288,38 @@ const updateClassGroup = async (req, res, next) => {
     }
 
     // Update fields
-    const { name, description, coverImage, isPublic, tags, rules, settings } = req.body;
+    const { name, description, motto, isPublic, tags, rules, settings } = req.body;
 
     if (name) group.name = name;
-    if (description) group.description = description;
-    if (coverImage !== undefined) group.coverImage = coverImage;
+    if (description !== undefined) group.description = description;
+    if (motto !== undefined) group.motto = motto;
     if (isPublic !== undefined) group.isPublic = isPublic;
     if (tags) group.tags = tags;
     if (rules) group.rules = rules;
     if (settings) group.settings = { ...group.settings, ...settings };
+
+    // Handle image uploads
+    if (req.files) {
+      const imageService = require('../services/imageService');
+
+      // Upload class image
+      if (req.files.classImage && req.files.classImage[0]) {
+        const classImageResult = await imageService.uploadClassPhoto(
+          req.files.classImage[0],
+          group.graduationYear
+        );
+        group.coverImage = classImageResult.urls.display;
+      }
+
+      // Upload banner image
+      if (req.files.bannerImage && req.files.bannerImage[0]) {
+        const bannerImageResult = await imageService.uploadClassPhoto(
+          req.files.bannerImage[0],
+          group.graduationYear
+        );
+        group.bannerImage = bannerImageResult.urls.full;
+      }
+    }
 
     await group.save();
 

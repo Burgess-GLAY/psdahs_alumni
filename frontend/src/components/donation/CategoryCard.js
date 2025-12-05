@@ -7,16 +7,18 @@ const CategoryCard = ({ icon, title, description, isSelected, onClick }) => {
         <Card
             onClick={onClick}
             sx={{
-                height: '100%',
                 cursor: 'pointer',
                 position: 'relative',
-                border: isSelected ? '3px solid' : '2px solid transparent',
-                borderColor: isSelected ? 'primary.main' : 'transparent',
+                border: isSelected ? '2px solid' : '1px solid',
+                borderColor: isSelected ? 'primary.main' : 'grey.200',
+                borderRadius: 4,
+                boxShadow: isSelected ? 4 : 1,
+                height: '100%',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                    transform: 'translateY(-8px)',
                     boxShadow: 6,
-                    borderColor: isSelected ? 'primary.main' : 'primary.light',
+                    transform: 'translateY(-4px)',
+                    borderColor: 'primary.main',
                 },
             }}
         >
@@ -25,10 +27,10 @@ const CategoryCard = ({ icon, title, description, isSelected, onClick }) => {
                 <Box
                     sx={{
                         position: 'absolute',
-                        top: 16,
-                        right: 16,
-                        width: 32,
-                        height: 32,
+                        top: 12,
+                        right: 12,
+                        width: 24,
+                        height: 24,
                         borderRadius: '50%',
                         bgcolor: 'primary.main',
                         display: 'flex',
@@ -37,57 +39,58 @@ const CategoryCard = ({ icon, title, description, isSelected, onClick }) => {
                         zIndex: 1,
                     }}
                 >
-                    <CheckIcon sx={{ color: 'white', fontSize: 20 }} />
+                    <CheckIcon sx={{ color: 'white', fontSize: 16 }} />
                 </Box>
             )}
 
-            <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                {/* Icon */}
+            <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 3 }}>
+                {/* Icon Box */}
                 <Box
                     sx={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: 80,
-                        height: 80,
-                        borderRadius: '50%',
-                        bgcolor: isSelected ? 'primary.main' : 'primary.light',
+                        width: 64,
+                        height: 64,
+                        minWidth: 64,
+                        borderRadius: 3,
+                        bgcolor: isSelected ? 'primary.main' : 'grey.100',
                         color: isSelected ? 'white' : 'primary.main',
-                        mb: 3,
-                        mx: 'auto',
                         transition: 'all 0.3s ease',
                     }}
                 >
-                    {React.cloneElement(icon, { sx: { fontSize: 40 } })}
+                    {React.cloneElement(icon, { sx: { fontSize: 32 } })}
                 </Box>
 
-                {/* Title */}
-                <Typography
-                    variant="h5"
-                    component="h3"
-                    gutterBottom
-                    textAlign="center"
-                    sx={{
-                        fontWeight: 600,
-                        mb: 2,
-                        color: isSelected ? 'primary.main' : 'text.primary',
-                    }}
-                >
-                    {title}
-                </Typography>
+                {/* Text Content */}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                    {/* Title */}
+                    <Typography
+                        variant="h6"
+                        component="h3"
+                        sx={{
+                            fontWeight: 700,
+                            fontSize: '1.1rem',
+                            mb: 1,
+                            color: 'text.primary',
+                            lineHeight: 1.3,
+                        }}
+                    >
+                        {title}
+                    </Typography>
 
-                {/* Description */}
-                <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    textAlign="center"
-                    sx={{
-                        lineHeight: 1.6,
-                        flex: 1,
-                    }}
-                >
-                    {description}
-                </Typography>
+                    {/* Description */}
+                    <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                            lineHeight: 1.6,
+                            fontSize: '0.9rem',
+                        }}
+                    >
+                        {description}
+                    </Typography>
+                </Box>
             </CardContent>
         </Card>
     );

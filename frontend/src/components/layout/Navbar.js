@@ -325,10 +325,9 @@ const Navbar = ({ onLoginClick, onSignUpClick }) => {
             <Divider />
             <ListItem
               button
-              onClick={() => {
-                setMobileOpen(false);
-                onLoginClick();
-              }}
+              component={RouterLink}
+              to="/login"
+              onClick={() => setMobileOpen(false)}
             >
               <ListItemIcon>
                 <AccountCircle color="primary" />
@@ -340,10 +339,9 @@ const Navbar = ({ onLoginClick, onSignUpClick }) => {
             </ListItem>
             <ListItem
               button
-              onClick={() => {
-                setMobileOpen(false);
-                onSignUpClick();
-              }}
+              component={RouterLink}
+              to="/register"
+              onClick={() => setMobileOpen(false)}
             >
               <ListItemIcon>
                 <AccountCircle color="primary" />
@@ -368,6 +366,8 @@ const Navbar = ({ onLoginClick, onSignUpClick }) => {
           bgcolor: 'background.paper',
           color: 'text.primary',
           borderBottom: `1px solid ${theme.palette.divider}`,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          pointerEvents: 'auto',
         }}
       >
         <Container maxWidth={false}>
@@ -552,16 +552,28 @@ const Navbar = ({ onLoginClick, onSignUpClick }) => {
                 ) : (
                   <>
                     <Button
-                      onClick={onLoginClick}
-                      sx={{ textTransform: 'none' }}
+                      component={RouterLink}
+                      to="/login"
+                      sx={{ 
+                        textTransform: 'none',
+                        pointerEvents: 'auto',
+                        zIndex: 1,
+                        position: 'relative'
+                      }}
                     >
                       Login
                     </Button>
                     <Button
-                      onClick={onSignUpClick}
+                      component={RouterLink}
+                      to="/register"
                       variant="contained"
                       color="primary"
-                      sx={{ textTransform: 'none' }}
+                      sx={{ 
+                        textTransform: 'none',
+                        pointerEvents: 'auto',
+                        zIndex: 1,
+                        position: 'relative'
+                      }}
                     >
                       Sign Up
                     </Button>

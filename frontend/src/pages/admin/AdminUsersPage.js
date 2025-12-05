@@ -430,132 +430,132 @@ const AdminUsersPage = () => {
   console.log('Filtered users:', filteredUsers);
 
   return (
-    <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
-      <Box sx={{ py: { xs: 2, sm: 3, md: 4 } }}>
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h4" component="h1" gutterBottom>User Management</Typography>
+    <Box sx={{ py: { xs: 2, sm: 3, md: 4 }, width: '100%' }}>
+      <Box sx={{ mb: 3, textAlign: 'center' }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, color: 'text.primary' }}>
+          User Management
+        </Typography>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={handleSearch}
-              InputProps={{
-                startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
-              }}
-              sx={{ width: 300 }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<PersonIcon />}
-              onClick={handleAddClick}
-            >
-              Add User
-            </Button>
-          </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={handleSearch}
+            InputProps={{
+              startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />,
+            }}
+            sx={{ width: { xs: '100%', sm: 300 } }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<PersonIcon />}
+            onClick={handleAddClick}
+          >
+            Add User
+          </Button>
         </Box>
-
-        <Card>
-          <CardContent>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>User</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Role</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Last Login</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredUsers
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar sx={{ width: 36, height: 36, mr: 2 }}>
-                              {user.avatar ? (
-                                <img src={user.avatar} alt={`${user.firstName} ${user.lastName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                              ) : (
-                                <PersonIcon />
-                              )}
-                            </Avatar>
-                            {`${user.firstName} ${user.lastName}`}
-                          </Box>
-                        </TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={user.isAdmin ? 'Admin' : 'User'}
-                            color={user.isAdmin ? 'primary' : 'default'}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={user.isActive !== false}
-                                onChange={() => handleStatusChange(user)}
-                                color="primary"
-                                size="small"
-                              />
-                            }
-                            label={user.isActive !== false ? 'Active' : 'Inactive'}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never logged in'}
-                        </TableCell>
-                        <TableCell>
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => handleEditClick(user)}
-                            disabled={loading}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => handleDeleteClick(user)}
-                            disabled={loading}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25]}
-              component="div"
-              count={filteredUsers.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={handleChangePage}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-          </CardContent>
-        </Card>
       </Box>
+
+      <Card sx={{ width: '100%' }}>
+        <CardContent>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>User</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Last Login</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredUsers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Avatar sx={{ width: 36, height: 36, mr: 2 }}>
+                            {user.avatar ? (
+                              <img src={user.avatar} alt={`${user.firstName} ${user.lastName}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <PersonIcon />
+                            )}
+                          </Avatar>
+                          {`${user.firstName} ${user.lastName}`}
+                        </Box>
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={user.isAdmin ? 'Admin' : 'User'}
+                          color={user.isAdmin ? 'primary' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={user.isActive !== false}
+                              onChange={() => handleStatusChange(user)}
+                              color="primary"
+                              size="small"
+                            />
+                          }
+                          label={user.isActive !== false ? 'Active' : 'Inactive'}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Never logged in'}
+                      </TableCell>
+                      <TableCell>
+                        <IconButton
+                          size="small"
+                          color="primary"
+                          onClick={() => handleEditClick(user)}
+                          disabled={loading}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteClick(user)}
+                          disabled={loading}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredUsers.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </CardContent>
+      </Card>
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
         <form onSubmit={handleEditSubmit}>
           <DialogTitle>Edit User</DialogTitle>
-          <DialogContent>
+          <DialogContent dividers sx={{ maxHeight: '80vh', overflowY: 'auto' }}>
             {currentUser && (
-              <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
                   <TextField
                     fullWidth
@@ -604,8 +604,10 @@ const AdminUsersPage = () => {
               </Grid>
             )}
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setEditDialogOpen(false)} disabled={submitting}>Cancel</Button>
+          <DialogActions sx={{ p: 2 }}>
+            <Button onClick={() => setEditDialogOpen(false)} disabled={submitting} variant="outlined">
+              Cancel
+            </Button>
             <Button
               type="submit"
               variant="contained"
@@ -623,8 +625,8 @@ const AdminUsersPage = () => {
       <Dialog open={addDialogOpen} onClose={() => !submitting && setAddDialogOpen(false)} maxWidth="md" fullWidth>
         <form onSubmit={handleAddUser}>
           <DialogTitle>Add New User</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
+          <DialogContent dividers sx={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
@@ -793,8 +795,10 @@ const AdminUsersPage = () => {
             Are you sure you want to delete {currentUser?.firstName} {currentUser?.lastName}? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} variant="outlined">
+            Cancel
+          </Button>
           <Button
             onClick={handleDeleteConfirm}
             color="error"
@@ -817,7 +821,7 @@ const AdminUsersPage = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

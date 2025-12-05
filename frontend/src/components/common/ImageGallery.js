@@ -10,7 +10,9 @@ import {
   Paper,
   ButtonBase,
   Slide,
-  Fade
+  Fade,
+  Tooltip,
+  Divider
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -88,7 +90,7 @@ const ImageGallery = ({ images, open, selectedIndex = 0, onClose }) => {
 
   const handleMouseDown = (e) => {
     if (zoomLevel <= 1) return;
-    
+
     setIsDragging(true);
     setDragStart({
       x: e.clientX - position.x,
@@ -98,13 +100,13 @@ const ImageGallery = ({ images, open, selectedIndex = 0, onClose }) => {
 
   const handleMouseMove = (e) => {
     if (!isDragging || zoomLevel <= 1) return;
-    
+
     const x = e.clientX - dragStart.x;
     const y = e.clientY - dragStart.y;
-    
+
     // Calculate max position based on zoom level
     const maxPosition = (zoomLevel - 1) * 100;
-    
+
     setPosition({
       x: Math.max(Math.min(x, maxPosition), -maxPosition),
       y: Math.max(Math.min(y, maxPosition), -maxPosition)

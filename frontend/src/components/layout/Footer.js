@@ -97,7 +97,8 @@ const Footer = () => {
                                     variant="contained"
                                     color="secondary"
                                     size="small"
-                                    onClick={openRegister}
+                                    component={RouterLink}
+                                    to="/register"
                                     fullWidth
                                     sx={{
                                         textTransform: 'none',
@@ -109,7 +110,8 @@ const Footer = () => {
                                 <Button
                                     variant="outlined"
                                     size="small"
-                                    onClick={openLogin}
+                                    component={RouterLink}
+                                    to="/login"
                                     fullWidth
                                     sx={{
                                         textTransform: 'none',

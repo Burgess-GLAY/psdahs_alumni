@@ -15,6 +15,9 @@ import {
   Select,
   MenuItem,
   Alert,
+  Fade,
+  Pagination as MuiPagination,
+  Stack
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -31,6 +34,9 @@ const ClassGroupsPage = () => {
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('year-desc');
+  const [page, setPage] = useState(1);
+  const [fadeIn, setFadeIn] = useState(true);
+  const itemsPerPage = 12; // 4 columns x 3 rows
 
   // State for groups data
   const [groups, setGroups] = useState([]);
@@ -42,6 +48,8 @@ const ClassGroupsPage = () => {
     const fetchGroups = async () => {
       setLoading(true);
       setError(null);
+      setFadeIn(false);
+
       try {
         const params = {
           limit: 100,
@@ -56,6 +64,9 @@ const ClassGroupsPage = () => {
         const res = await classGroupService.fetchGroups(params);
         const data = res.data || [];
         setGroups(data);
+
+        // Trigger fade in after data is loaded
+        setTimeout(() => setFadeIn(true), 50);
       } catch (error) {
         console.error('Error fetching groups:', error);
         setError('Failed to load class groups. Please try again.');
@@ -67,6 +78,11 @@ const ClassGroupsPage = () => {
 
     fetchGroups();
   }, [sortBy, activeTab, isAuthenticated]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, activeTab, sortBy]);
 
   // Event handlers
   const handleTabChange = (_event, newValue) => {
@@ -80,6 +96,11 @@ const ClassGroupsPage = () => {
 
   const handleSortChange = (event) => {
     setSortBy(event.target.value);
+  };
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Join/Leave handlers
@@ -170,16 +191,20 @@ const ClassGroupsPage = () => {
   // Determine which groups to display based on active tab
   const displayGroups = activeTab === 'my-groups' ? myGroups : allGroups;
 
-
+  // Calculate pagination
+  const totalPages = Math.ceil(displayGroups.length / itemsPerPage);
+  const startIndex = (page - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedGroups = displayGroups.slice(startIndex, endIndex);
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 4 } }}>
       {/* Page Header */}
-      <Box mb={4}>
-        <Typography variant="h4" component="h1" gutterBottom fontWeight={600}>
+      <Box mb={4} textAlign="center">
+        <Typography variant="h3" component="h1" gutterBottom fontWeight={600}>
           Class Groups
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography variant="subtitle1" color="text.secondary">
           Connect with your classmates, share memories, and stay updated with your graduating class.
         </Typography>
       </Box>
@@ -253,11 +278,11 @@ const ClassGroupsPage = () => {
         </Grid>
       </Box>
 
-      {/* Groups Grid */}
+      {/* Groups Grid - 4 columns, equal size cards */}
       {loading ? (
         <Grid container spacing={3}>
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Grid item xs={12} sm={6} md={4} key={i}>
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
+            <Grid item xs={12} sm={6} md={3} key={i} sx={{ display: 'flex' }}>
               <ClassGroupCard loading={true} />
             </Grid>
           ))}
@@ -290,19 +315,55 @@ const ClassGroupsPage = () => {
           )}
         </Box>
       ) : (
-        <Grid container spacing={3}>
-          {displayGroups.map((group) => (
-            <Grid item xs={12} sm={6} md={4} key={group._id || group.id}>
-              <ClassGroupCard
-                classGroup={group}
-                isMember={group.isMember}
-                onJoin={handleJoinGroup}
-                onLeave={handleLeaveGroup}
-                isAuthenticated={isAuthenticated}
-              />
+        <>
+          <Fade in={fadeIn} timeout={300}>
+            <Grid container spacing={3}>
+              {paginatedGroups.map((group) => (
+                <Grid item xs={12} sm={6} md={3} key={group._id || group.id} sx={{ display: 'flex' }}>
+                  <ClassGroupCard
+                    classGroup={group}
+                    isMember={group.isMember}
+                    onJoin={handleJoinGroup}
+                    onLeave={handleLeaveGroup}
+                    isAuthenticated={isAuthenticated}
+                  />
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
+          </Fade>
+
+          {/* Modern Pagination */}
+          {totalPages > 1 && (
+            <Box mt={6} display="flex" justifyContent="center">
+              <Stack spacing={2}>
+                <MuiPagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  color="primary"
+                  size="large"
+                  showFirstButton
+                  showLastButton
+                  siblingCount={1}
+                  boundaryCount={1}
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'scale(1.1)',
+                      },
+                      '&.Mui-selected': {
+                        transform: 'scale(1.15)',
+                      },
+                    },
+                  }}
+                />
+              </Stack>
+            </Box>
+          )}
+        </>
       )}
     </Container>
   );

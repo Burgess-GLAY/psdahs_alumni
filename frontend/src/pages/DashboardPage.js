@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -7,7 +8,6 @@ import {
   Paper,
   Card,
   CardContent,
-  CardHeader,
   Avatar,
   List,
   ListItem,
@@ -17,6 +17,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Alert,
   useTheme
 } from '@mui/material';
 import {
@@ -30,87 +31,87 @@ import {
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../features/auth/authSlice';
-import { format } from 'date-fns';
-
-// Mock data - replace with actual API calls
-const mockUpcomingEvents = [
-  {
-    id: 1,
-    title: 'Annual Alumni Reunion',
-    date: '2025-12-15T18:00:00',
-    location: 'PSDAHS Main Hall',
-    registered: true
-  },
-  {
-    id: 2,
-    title: 'Career Fair',
-    date: '2025-11-20T10:00:00',
-    location: 'School Gymnasium',
-    registered: false
-  },
-  {
-    id: 3,
-    title: 'Class of 2020 5-Year Reunion',
-    date: '2025-10-15T19:00:00',
-    location: 'Grand Ballroom',
-    registered: true
-  },
-];
-
-const mockRecentAnnouncements = [
-  {
-    id: 1,
-    title: 'New Alumni Portal Launched',
-    date: '2025-10-01T09:00:00',
-    excerpt: 'We are excited to announce the launch of our new alumni portal...',
-    category: 'announcement'
-  },
-  {
-    id: 2,
-    title: 'Call for Class Representatives',
-    date: '2025-09-25T14:30:00',
-    excerpt: 'We are looking for class representatives for the upcoming year...',
-    category: 'opportunity'
-  },
-  {
-    id: 3,
-    title: 'Alumni Scholarship Program',
-    date: '2025-09-15T10:15:00',
-    excerpt: 'Applications are now open for the 2025 Alumni Scholarship...',
-    category: 'scholarship'
-  },
-];
+import { format, parseISO } from 'date-fns';
+import api from '../services/api';
 
 const DashboardPage = () => {
   const user = useSelector(selectUser);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState(null);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    eventsAttended: 0,
+    totalDonations: 0,
+    alumniConnected: 0,
+    upcomingEvents: 0
+  });
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [recentAnnouncements, setRecentAnnouncements] = useState([]);
   const theme = useTheme();
 
-  // Simulate loading data
+  // Fetch real data from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      // Replace with actual API calls
-      setStats({
-        eventsAttended: 12,
-        totalDonations: 2450,
-        alumniConnected: 856,
-        upcomingEvents: 3
-      });
-      setLoading(false);
-    }, 1000);
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    return () => clearTimeout(timer);
-  }, []);
+        // Fetch events, announcements, and user stats in parallel
+        const [eventsRes, announcementsRes, classGroupsRes] = await Promise.all([
+          api.get('/events/upcoming?limit=3').catch(() => ({ data: { data: [] } })),
+          api.get('/announcements?limit=3').catch(() => ({ data: { data: [] } })),
+          api.get('/class-groups').catch(() => ({ data: { data: [] } }))
+        ]);
+
+        const events = eventsRes.data.data || eventsRes.data || [];
+        const announcements = announcementsRes.data.data || announcementsRes.data || [];
+        const classGroups = classGroupsRes.data.data || classGroupsRes.data || [];
+
+        // Get user's class group to find classmates
+        let classmatesCount = 0;
+        if (user?.graduationYear) {
+          const userClassGroup = classGroups.find(g => g.graduationYear === user.graduationYear);
+          classmatesCount = userClassGroup?.memberCount || userClassGroup?.members?.length || 0;
+        }
+
+        // Calculate stats
+        const now = new Date();
+        const upcomingEventsList = events.filter(event => {
+          const eventDate = new Date(event.startDate || event.date);
+          return eventDate >= now;
+        });
+
+        setUpcomingEvents(upcomingEventsList.slice(0, 3));
+        setRecentAnnouncements(announcements.slice(0, 3));
+
+        setStats({
+          eventsAttended: 0, // This would need a separate API call for user's event history
+          totalDonations: 0, // This would need a separate API call for user's donations
+          alumniConnected: classmatesCount,
+          upcomingEvents: upcomingEventsList.length
+        });
+
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again later.');
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [user]);
 
   const handleEventRegister = (eventId) => {
-    // Handle event registration
-    console.log(`Registering for event ${eventId}`);
+    navigate(`/events/${eventId}`);
   };
 
   const handleViewAll = (type) => {
-    // Handle view all action
-    console.log(`View all ${type}`);
+    if (type === 'events') {
+      navigate('/events');
+    } else if (type === 'announcements') {
+      navigate('/announcements');
+    }
   };
 
   if (loading) {
@@ -123,6 +124,11 @@ const DashboardPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4, px: { xs: 2, sm: 3, md: 4 } }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
       <Box mb={4}>
         <Typography variant="h4" component="h1" gutterBottom>
           Welcome back, {user?.firstName || 'Alumni'}!
@@ -220,78 +226,87 @@ const DashboardPage = () => {
                 View All
               </Button>
             </Box>
-            <List>
-              {mockUpcomingEvents.map((event, index) => (
-                <React.Fragment key={event.id}>
-                  <ListItem
-                    alignItems="flex-start"
-                    sx={{
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                        borderRadius: 1,
-                      },
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'primary.light' }}>
-                        <EventIcon />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                          <Typography variant="subtitle1" component="span">
-                            {event.title}
-                          </Typography>
-                          {event.registered && (
-                            <Chip
-                              icon={<CheckCircleIcon fontSize="small" />}
-                              label="Registered"
-                              size="small"
-                              color="success"
-                              variant="outlined"
-                            />
-                          )}
-                        </Box>
-                      }
-                      secondary={
-                        <>
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            color="text.primary"
-                            display="block"
-                          >
-                            {format(new Date(event.date), 'EEEE, MMMM d, yyyy')}
-                          </Typography>
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            color="text.secondary"
-                          >
-                            {event.location}
-                          </Typography>
-                        </>
-                      }
-                    />
-                    {!event.registered && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEventRegister(event.id);
-                        }}
-                      >
-                        Register
-                      </Button>
-                    )}
-                  </ListItem>
-                  {index < mockUpcomingEvents.length - 1 && <Divider variant="inset" component="li" />}
-                </React.Fragment>
-              ))}
-            </List>
+            {upcomingEvents.length === 0 ? (
+              <Box textAlign="center" py={4}>
+                <Typography variant="body2" color="text.secondary">
+                  No upcoming events found.
+                </Typography>
+              </Box>
+            ) : (
+              <List>
+                {upcomingEvents.map((event, index) => (
+                  <React.Fragment key={event._id || event.id}>
+                    <ListItem
+                      alignItems="flex-start"
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                          borderRadius: 1,
+                        },
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => navigate(`/events/${event._id || event.id}`)}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'primary.light' }}>
+                          <EventIcon />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Box display="flex" justifyContent="space-between" alignItems="center">
+                            <Typography variant="subtitle1" component="span">
+                              {event.title}
+                            </Typography>
+                            {event.isRegistered && (
+                              <Chip
+                                icon={<CheckCircleIcon fontSize="small" />}
+                                label="Registered"
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <>
+                            <Typography
+                              component="span"
+                              variant="body2"
+                              color="text.primary"
+                              display="block"
+                            >
+                              {format(parseISO(event.startDate || event.date), 'EEEE, MMMM d, yyyy')}
+                            </Typography>
+                            <Typography
+                              component="span"
+                              variant="body2"
+                              color="text.secondary"
+                            >
+                              {event.location || 'Location TBA'}
+                            </Typography>
+                          </>
+                        }
+                      />
+                      {!event.isRegistered && event.registrationEnabled && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEventRegister(event._id || event.id);
+                          }}
+                        >
+                          Register
+                        </Button>
+                      )}
+                    </ListItem>
+                    {index < upcomingEvents.length - 1 && <Divider variant="inset" component="li" />}
+                  </React.Fragment>
+                ))}
+              </List>
+            )}
           </Paper>
         </Grid>
 
@@ -310,65 +325,77 @@ const DashboardPage = () => {
                 View All
               </Button>
             </Box>
-            <List>
-              {mockRecentAnnouncements.map((announcement, index) => (
-                <React.Fragment key={announcement.id}>
-                  <ListItem
-                    alignItems="flex-start"
-                    sx={{
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                        borderRadius: 1,
-                      },
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'secondary.light' }}>
-                        <AnnouncementIcon />
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Box display="flex" justifyContent="space-between">
-                          <Typography variant="subtitle1" component="span">
-                            {announcement.title}
-                          </Typography>
-                          <Chip
-                            label={announcement.category}
-                            size="small"
-                            color="secondary"
-                            variant="outlined"
-                            sx={{ ml: 1, textTransform: 'capitalize' }}
-                          />
-                        </Box>
-                      }
-                      secondary={
-                        <>
-                          <Typography
-                            component="span"
-                            variant="body2"
-                            color="text.primary"
-                            display="block"
-                            mb={0.5}
-                          >
-                            {announcement.excerpt}
-                          </Typography>
-                          <Typography
-                            component="span"
-                            variant="caption"
-                            color="text.secondary"
-                          >
-                            {format(new Date(announcement.date), 'MMM d, yyyy')}
-                          </Typography>
-                        </>
-                      }
-                    />
-                  </ListItem>
-                  {index < mockRecentAnnouncements.length - 1 && <Divider variant="inset" component="li" />}
-                </React.Fragment>
-              ))}
-            </List>
+            {recentAnnouncements.length === 0 ? (
+              <Box textAlign="center" py={4}>
+                <Typography variant="body2" color="text.secondary">
+                  No recent announcements found.
+                </Typography>
+              </Box>
+            ) : (
+              <List>
+                {recentAnnouncements.map((announcement, index) => (
+                  <React.Fragment key={announcement._id || announcement.id}>
+                    <ListItem
+                      alignItems="flex-start"
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                          borderRadius: 1,
+                        },
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => navigate('/announcements')}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'secondary.light' }}>
+                          <AnnouncementIcon />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Box display="flex" justifyContent="space-between">
+                            <Typography variant="subtitle1" component="span">
+                              {announcement.title}
+                            </Typography>
+                            {announcement.category && (
+                              <Chip
+                                label={announcement.category}
+                                size="small"
+                                color="secondary"
+                                variant="outlined"
+                                sx={{ ml: 1, textTransform: 'capitalize' }}
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <>
+                            <Typography
+                              component="span"
+                              variant="body2"
+                              color="text.primary"
+                              display="block"
+                              mb={0.5}
+                            >
+                              {announcement.content?.substring(0, 100) || announcement.excerpt || 'No description available'}
+                              {(announcement.content?.length > 100 || announcement.excerpt?.length > 100) && '...'}
+                            </Typography>
+                            <Typography
+                              component="span"
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {format(parseISO(announcement.createdAt || announcement.date), 'MMM d, yyyy')}
+                            </Typography>
+                          </>
+                        }
+                      />
+                    </ListItem>
+                    {index < recentAnnouncements.length - 1 && <Divider variant="inset" component="li" />}
+                  </React.Fragment>
+                ))}
+              </List>
+            )}
           </Paper>
         </Grid>
       </Grid>
@@ -384,7 +411,8 @@ const DashboardPage = () => {
               fullWidth
               variant="outlined"
               startIcon={<PeopleIcon />}
-              onClick={() => console.log('Connect with Alumni')}
+              component={RouterLink}
+              to="/alumni"
             >
               Connect
             </Button>
@@ -394,7 +422,8 @@ const DashboardPage = () => {
               fullWidth
               variant="outlined"
               startIcon={<EventIcon />}
-              onClick={() => console.log('Browse Events')}
+              component={RouterLink}
+              to="/events"
             >
               Events
             </Button>
@@ -404,9 +433,32 @@ const DashboardPage = () => {
               fullWidth
               variant="outlined"
               startIcon={<SchoolIcon />}
-              onClick={() => console.log('Class Groups')}
+              component={RouterLink}
+              to="/classes"
             >
               Class Groups
+            </Button>
+          </Grid>
+          <Grid item xs={6} sm={4} md={2}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<AnnouncementIcon />}
+              component={RouterLink}
+              to="/announcements"
+            >
+              Announcements
+            </Button>
+          </Grid>
+          <Grid item xs={6} sm={4} md={2}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<PeopleIcon />}
+              component={RouterLink}
+              to="/profile"
+            >
+              Profile
             </Button>
           </Grid>
         </Grid>

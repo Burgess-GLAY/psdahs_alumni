@@ -1,219 +1,170 @@
-import React, { useState } from 'react';
-import { useNavigate, Link as RouterLink, useLocation } from 'react-router-dom';
-import { 
-  Avatar, 
-  Box, 
-  Button, 
-  Checkbox, 
-  Container, 
-  CssBaseline, 
-  FormControlLabel, 
-  Grid, 
-  Link, 
-  TextField, 
-  Typography, 
-  Paper,
-  InputAdornment,
-  IconButton,
-  Alert,
-  CircularProgress
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
+import {
+    Dialog,
+    DialogContent,
+    Box,
+    Tabs,
+    Tab,
+    IconButton,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
-import { 
-  LockOutlined as LockOutlinedIcon,
-  Visibility,
-  VisibilityOff,
-  ArrowBack as ArrowBackIcon,
-  Google as GoogleIcon
-} from '@mui/icons-material';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
-import { useAuth } from '../../contexts/AuthContext';
-import GoogleLoginButton from '../../components/auth/GoogleLoginButton';
-import { Divider, Stack } from '@mui/material';
-
-const validationSchema = Yup.object({
-  email: Yup.string()
-    .email('Enter a valid email')
-    .required('Email is required'),
-  password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
-});
+import { Close as CloseIcon } from '@mui/icons-material';
+import { clearAuthError, selectRole, selectIsAuthenticated } from '../../features/auth/authSlice';
+import LoginForm from '../../components/auth/LoginForm';
+import RegisterForm from '../../components/auth/RegisterForm';
 
 const LoginPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+    const location = useLocation();
+    // Initialize mode based on current path
+    const [mode, setMode] = useState(() => {
+        return location.pathname === '/register' ? 'register' : 'login';
+    });
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const theme = useTheme();
+    const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const userRole = useSelector(selectRole);
+    const isAuthenticated = useSelector(selectIsAuthenticated);
 
-  // Get email from location state if coming from Google login
-  const emailFromState = location.state?.email || '';
+    // Update mode when path changes
+    useEffect(() => {
+        if (location.pathname === '/register') {
+            setMode('register');
+        } else {
+            setMode('login');
+        }
+    }, [location.pathname]);
 
-  const formik = useFormik({
-    initialValues: {
-      email: emailFromState,
-      password: '',
-      rememberMe: false,
-    },
-    validationSchema,
-    onSubmit: async (values) => {
-      try {
-        setError('');
-        setLoading(true);
-        await signIn(values.email, values.password);
+    // Close dialog if already authenticated
+    useEffect(() => {
+        if (isAuthenticated && userRole !== 'guest') {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, userRole, navigate]);
+
+    // Clear errors when switching modes
+    const handleModeChange = (event, newMode) => {
+        dispatch(clearAuthError());
+        setMode(newMode);
+        if (newMode === 'register') {
+            navigate('/register', { replace: true });
+        } else {
+            navigate('/login', { replace: true });
+        }
+    };
+
+    const handleSwitchToRegister = () => {
+        dispatch(clearAuthError());
+        setMode('register');
+        navigate('/register', { replace: true });
+    };
+
+    const handleSwitchToLogin = () => {
+        dispatch(clearAuthError());
+        setMode('login');
+        navigate('/login', { replace: true });
+    };
+
+    const handleSuccess = () => {
         navigate('/dashboard');
-      } catch (err) {
-        setError(err.message || 'Failed to sign in. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    },
-  });
+    };
 
-  const handleClickShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
+    const handleClose = () => {
+        navigate('/');
+    };
 
-  const handleMouseDownPassword = (event) => {
-    event.preventDefault();
-  };
-
-  return (
-    <Container component="main" maxWidth="xs">
-      <CssBaseline />
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Button
-          startIcon={<ArrowBackIcon />}
-          component={RouterLink}
-          to="/"
-          sx={{ alignSelf: 'flex-start', mb: 2 }}
-        >
-          Back to Home
-        </Button>
-        
-        <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
+    return (
+        <Dialog
+            open={true}
+            onClose={handleClose}
+            maxWidth="sm"
+            fullWidth
+            fullScreen={fullScreen}
+            aria-labelledby="auth-modal-title"
+            aria-describedby="auth-modal-description"
+            disableEscapeKeyDown={false}
+            keepMounted={false}
+            PaperProps={{
+                sx: {
+                    borderRadius: fullScreen ? 0 : 2,
+                    position: 'relative',
+                },
+                role: 'dialog',
+                'aria-modal': true,
             }}
-          >
-            <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
-              <LockOutlinedIcon />
-            </Avatar>
-            <Typography component="h1" variant="h5">
-              Sign in to PSDAHS Alumni
-            </Typography>
-            
-            {error && (
-              <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
-                {error}
-              </Alert>
-            )}
-            
-            <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1, width: '100%' }}>
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="email"
-                label="Email Address"
-                name="email"
-                autoComplete="email"
-                autoFocus
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.email && Boolean(formik.errors.email)}
-                helperText={formik.touched.email && formik.errors.email}
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete="current-password"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.password && Boolean(formik.errors.password)}
-                helperText={formik.touched.password && formik.errors.password}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={handleClickShowPassword}
-                        onMouseDown={handleMouseDownPassword}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
+        >
+            {/* Close button */}
+            <IconButton
+                aria-label="close"
+                onClick={handleClose}
+                sx={{
+                    position: 'absolute',
+                    right: 8,
+                    top: 8,
+                    color: (theme) => theme.palette.grey[500],
+                    zIndex: 1,
                 }}
-              />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox 
-                      name="rememberMe" 
-                      color="primary" 
-                      checked={formik.values.rememberMe}
-                      onChange={formik.handleChange}
+            >
+                <CloseIcon />
+            </IconButton>
+
+            {/* Tabs for switching between login and register */}
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', pt: 1 }}>
+                <Tabs
+                    value={mode}
+                    onChange={handleModeChange}
+                    aria-label="authentication mode tabs"
+                    centered
+                >
+                    <Tab
+                        label="Sign In"
+                        value="login"
+                        id="auth-tab-login"
+                        aria-controls="auth-tabpanel-login"
                     />
-                  }
-                  label="Remember me"
-                />
-                <Link component={RouterLink} to="/forgot-password" variant="body2">
-                  Forgot password?
-                </Link>
-              </Box>
-              
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                sx={{ mt: 3, mb: 2 }}
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={24} /> : 'Sign In'}
-              </Button>
-
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ my: 2 }}>
-                <Divider sx={{ flexGrow: 1 }} />
-                <Typography variant="body2" color="text.secondary">OR</Typography>
-                <Divider sx={{ flexGrow: 1 }} />
-              </Stack>
-
-              <GoogleLoginButton />
-              
-              <Grid container justifyContent="flex-end">
-                <Grid item>
-                  <Link component={RouterLink} to="/register" variant="body2">
-                    Don't have an account? Sign Up
-                  </Link>
-                </Grid>
-              </Grid>
+                    <Tab
+                        label="Sign Up"
+                        value="register"
+                        id="auth-tab-register"
+                        aria-controls="auth-tabpanel-register"
+                    />
+                </Tabs>
             </Box>
-          </Box>
-        </Paper>
-      </Box>
-    </Container>
-  );
+
+            <DialogContent sx={{ p: 4 }}>
+                {/* Login Form */}
+                {mode === 'login' && (
+                    <Box
+                        role="tabpanel"
+                        id="auth-tabpanel-login"
+                        aria-labelledby="auth-tab-login"
+                    >
+                        <LoginForm
+                            onSuccess={handleSuccess}
+                            onSwitchToRegister={handleSwitchToRegister}
+                        />
+                    </Box>
+                )}
+
+                {/* Register Form */}
+                {mode === 'register' && (
+                    <Box
+                        role="tabpanel"
+                        id="auth-tabpanel-register"
+                        aria-labelledby="auth-tab-register"
+                    >
+                        <RegisterForm
+                            onSuccess={handleSuccess}
+                            onSwitchToLogin={handleSwitchToLogin}
+                        />
+                    </Box>
+                )}
+            </DialogContent>
+        </Dialog>
+    );
 };
 
 export default LoginPage;

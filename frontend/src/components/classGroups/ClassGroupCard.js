@@ -45,7 +45,7 @@ const ClassGroupCard = ({
     }, [classGroup?.memberCount]);
 
     const handleCardClick = () => {
-        navigate(`/class-groups/${classGroup._id}`);
+        navigate(`/classes/${classGroup._id}`);
     };
 
     const handleMembershipSuccess = ({ action, memberCount }) => {
@@ -89,20 +89,20 @@ const ClassGroupCard = ({
     return (
         <Card
             sx={{
-                height: '100%',
+                width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6
+                    transform: 'translateY(-8px)',
+                    boxShadow: 12
                 }
             }}
             onClick={handleCardClick}
         >
-            {/* Class Photo Banner */}
-            <Box sx={{ position: 'relative', paddingTop: '56.25%', overflow: 'hidden' }}>
+            {/* Class Photo Banner - Fixed aspect ratio */}
+            <Box sx={{ position: 'relative', paddingTop: '75%', overflow: 'hidden' }}>
                 {!imageLoaded && (
                     <Skeleton
                         variant="rectangular"
@@ -119,6 +119,7 @@ const ClassGroupCard = ({
                     component="img"
                     image={imageUrl}
                     alt={classGroup.name}
+                    loading="lazy"
                     onLoad={() => setImageLoaded(true)}
                     onError={() => {
                         setImageError(true);
@@ -153,71 +154,70 @@ const ClassGroupCard = ({
                 )}
             </Box>
 
-            {/* Card Content */}
-            <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-                {/* Class Name and Year */}
-                <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-                    <Box display="flex" alignItems="center" flex={1}>
-                        <SchoolIcon color="primary" sx={{ mr: 1, fontSize: 20 }} />
-                        <Typography
-                            variant="h6"
-                            component="h3"
-                            sx={{
-                                fontWeight: 600,
-                                fontSize: { xs: '1rem', sm: '1.1rem' },
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                            }}
-                        >
-                            {classGroup.name}
-                        </Typography>
-                    </Box>
+            {/* Card Content - EXACT fixed heights */}
+            <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+                {/* Class Name - EXACT fixed height */}
+                <Box display="flex" alignItems="center" height="1.5rem" mb={1}>
+                    <SchoolIcon color="primary" sx={{ mr: 1, fontSize: 20, flexShrink: 0 }} />
+                    <Typography
+                        variant="h6"
+                        component="h3"
+                        sx={{
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            lineHeight: 1.5,
+                        }}
+                    >
+                        {classGroup.name}
+                    </Typography>
                 </Box>
 
-                {/* Graduation Year */}
-                <Box mb={1.5}>
+                {/* Graduation Year - EXACT fixed height */}
+                <Box mb={1.5} height="24px">
                     <Chip
                         label={`Class of ${classGroup.graduationYear}`}
                         size="small"
                         color="primary"
                         variant="outlined"
-                        sx={{ fontWeight: 500 }}
+                        sx={{ fontWeight: 500, height: '24px' }}
                     />
                 </Box>
 
-                {/* Motto/Description */}
-                {classGroup.motto && (
-                    <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                            mb: 1.5,
-                            fontStyle: 'italic',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical'
-                        }}
-                    >
-                        "{classGroup.motto}"
-                    </Typography>
-                )}
+                {/* Motto/Description - EXACT fixed height */}
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                        mb: 1.5,
+                        height: '2.4rem',
+                        fontStyle: classGroup.motto ? 'italic' : 'normal',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        lineHeight: 1.2,
+                    }}
+                >
+                    {classGroup.motto ? `"${classGroup.motto}"` : '\u00A0'}
+                </Typography>
 
-                {/* Member Count */}
-                <Box display="flex" alignItems="center">
-                    <PeopleIcon color="action" fontSize="small" sx={{ mr: 0.5 }} />
-                    <Typography variant="body2" color="text.secondary">
+                {/* Member Count - EXACT fixed height */}
+                <Box display="flex" alignItems="center" height="1.5rem">
+                    <PeopleIcon color="action" fontSize="small" sx={{ mr: 0.5, fontSize: 18 }} />
+                    <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
                         {formatMemberCount(localMemberCount)}
                     </Typography>
                 </Box>
             </CardContent>
 
-            {/* Card Actions */}
+            {/* Card Actions - EXACT fixed heights */}
             <CardActions sx={{ p: 2, pt: 0, flexDirection: 'column', gap: 1 }}>
-                {/* Membership Actions */}
-                <Box width="100%" onClick={(e) => e.stopPropagation()}>
+                {/* Membership Actions - EXACT fixed height */}
+                <Box width="100%" height="36px" onClick={(e) => e.stopPropagation()}>
                     <MembershipActions
                         classGroup={classGroup}
                         isMember={localMemberStatus}
@@ -230,7 +230,7 @@ const ClassGroupCard = ({
                     />
                 </Box>
 
-                {/* View Group Button */}
+                {/* View Group Button - EXACT fixed height */}
                 <Button
                     fullWidth
                     variant="contained"
@@ -239,7 +239,8 @@ const ClassGroupCard = ({
                     onClick={handleCardClick}
                     sx={{
                         textTransform: 'none',
-                        fontWeight: 600
+                        fontWeight: 600,
+                        height: '36px',
                     }}
                 >
                     View Group

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
+// import { GoogleLogin } from '@react-oauth/google';
 import { useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -40,18 +40,18 @@ const GoogleLoginButton = ({ buttonText = 'Continue with Google', isSignUp = fal
         const { name, email } = ticket.data;
         const [firstName, ...lastNameParts] = name.split(' ');
         const lastName = lastNameParts.join(' ');
-        
+
         setAdditionalData(prev => ({
           ...prev,
           firstName: prev.firstName || firstName,
           lastName: prev.lastName || lastName,
           email
         }));
-        
+
         setShowAdditionalInfo(true);
         return;
       }
-      
+
       // For sign-in, proceed normally
       await handleGoogleAuth(credentialResponse.credential);
     } catch (error) {
@@ -66,7 +66,7 @@ const GoogleLoginButton = ({ buttonText = 'Continue with Google', isSignUp = fal
         isSignUp: true,
         additionalData
       });
-      
+
       handleAuthSuccess(response.data);
       setShowAdditionalInfo(false);
     } catch (error) {
@@ -82,33 +82,33 @@ const GoogleLoginButton = ({ buttonText = 'Continue with Google', isSignUp = fal
   const handleAuthSuccess = (data) => {
     const { token, user } = data;
     dispatch(login({ user, token }));
-    
+
     // Redirect based on user role or previous location
-    const redirectPath = location.state?.from?.pathname || 
-                        (user.isAdmin ? '/admin/dashboard' : '/dashboard');
+    const redirectPath = location.state?.from?.pathname ||
+      (user.isAdmin ? '/admin/dashboard' : '/dashboard');
     navigate(redirectPath);
-    
+
     toast.success(isSignUp ? 'Account created successfully!' : 'Logged in successfully!');
   };
 
   const handleGoogleError = (error) => {
     console.error('Google auth error:', error);
     let errorMessage = `Failed to ${isSignUp ? 'sign up' : 'sign in'} with Google`;
-    
+
     if (error.response?.data?.message?.includes('already exists')) {
       errorMessage = 'An account with this email already exists. Please log in instead.';
       navigate('/login', { state: { email: error.response.data.email } });
     } else if (error.response?.data?.message) {
       errorMessage = error.response.data.message;
     }
-    
+
     toast.error(errorMessage);
   };
 
   return (
     <>
       <div className="google-login-container" style={{ width: '100%' }}>
-        {GOOGLE_CLIENT_ID ? (
+        {/* {GOOGLE_CLIENT_ID ? (
           <GoogleLogin
             clientId={GOOGLE_CLIENT_ID}
             onSuccess={handleGoogleSuccess}
@@ -126,7 +126,10 @@ const GoogleLoginButton = ({ buttonText = 'Continue with Google', isSignUp = fal
           />
         ) : (
           <div style={{ color: 'red' }}>Google Client ID is missing. Please check your configuration.</div>
-        )}
+        )} */}
+        <Button variant="outlined" fullWidth disabled>
+          Google Login Temporarily Disabled
+        </Button>
       </div>
 
       {/* Additional Info Dialog for Sign Up */}

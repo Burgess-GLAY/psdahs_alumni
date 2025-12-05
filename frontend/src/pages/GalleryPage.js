@@ -276,91 +276,6 @@ const mockGalleryItems = [
       name: 'Class Representative',
       avatar: 'https://randomuser.me/api/portraits/women/50.jpg'
     }
-  },
-  {
-    id: 13,
-    type: 'image',
-    src: '/images/CLASS OF KUKATONOR.jpeg',
-    title: 'Class of Kukatonor',
-    description: 'Kukatonor class reunion celebration',
-    date: '2023-07-22',
-    likes: 118,
-    comments: 29,
-    downloads: 55,
-    isLiked: false,
-    tags: ['class', 'kukatonor', 'reunion'],
-    user: {
-      name: 'Class Representative',
-      avatar: 'https://randomuser.me/api/portraits/men/37.jpg'
-    }
-  },
-  {
-    id: 14,
-    type: 'image',
-    src: '/images/reunion sport day.jpeg',
-    title: 'Alumni Sports Day',
-    description: 'Competitive spirit and fun at the alumni sports day',
-    date: '2023-09-10',
-    likes: 167,
-    comments: 45,
-    downloads: 82,
-    isLiked: true,
-    tags: ['sports', 'competition', 'fun'],
-    user: {
-      name: 'Sports Committee',
-      avatar: 'https://randomuser.me/api/portraits/women/51.jpg'
-    }
-  },
-  {
-    id: 15,
-    type: 'image',
-    src: '/images/Incoming reunion shirt.jpeg',
-    title: 'Reunion Merchandise',
-    description: 'Official reunion t-shirt design',
-    date: '2023-05-01',
-    likes: 94,
-    comments: 18,
-    downloads: 41,
-    isLiked: false,
-    tags: ['merchandise', 'reunion', 'shirt'],
-    user: {
-      name: 'Merchandise Team',
-      avatar: 'https://randomuser.me/api/portraits/men/38.jpg'
-    }
-  },
-  {
-    id: 16,
-    type: 'image',
-    src: '/images/incomin reunion shirt 2.jpeg',
-    title: 'Reunion Shirt Design 2',
-    description: 'Alternative reunion t-shirt design',
-    date: '2023-05-01',
-    likes: 88,
-    comments: 16,
-    downloads: 37,
-    isLiked: false,
-    tags: ['merchandise', 'reunion', 'shirt'],
-    user: {
-      name: 'Merchandise Team',
-      avatar: 'https://randomuser.me/api/portraits/women/52.jpg'
-    }
-  },
-  {
-    id: 17,
-    type: 'image',
-    src: '/images/PSDAHS ADMISSION FLYER.jpeg',
-    title: 'PSDAHS Admission Information',
-    description: 'Official admission flyer for prospective students',
-    date: '2023-01-15',
-    likes: 203,
-    comments: 67,
-    downloads: 145,
-    isLiked: true,
-    tags: ['admission', 'information', 'school'],
-    user: {
-      name: 'School Administration',
-      avatar: 'https://randomuser.me/api/portraits/men/39.jpg'
-    }
   }
 ];
 
@@ -394,7 +309,8 @@ const GalleryPage = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [activeTab, setActiveTab] = useState(0);
 
-  const galleryItems = [...mockGalleryItems]; // In a real app, this would come from an API
+  // Keep only 12 items
+  const galleryItems = [...mockGalleryItems].slice(0, 12); // In a real app, this would come from an API
 
   // Filter and sort gallery items
   const filteredItems = galleryItems
@@ -791,9 +707,9 @@ const GalleryPage = () => {
                   </Button>
                 </Box>
               ) : viewMode === 'grid' ? (
-                <Grid container spacing={2}>
+                <Grid container spacing={2} justifyContent="center">
                   {filteredItems.map((item, index) => (
-                    <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
+                    <Grid item xs={12} sm={6} md={3} key={item.id}>
                       <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}

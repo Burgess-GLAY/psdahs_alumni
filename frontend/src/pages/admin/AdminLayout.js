@@ -34,21 +34,23 @@ const drawerWidth = 260;
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
     flexGrow: 1,
-    padding: 0, // Remove padding to allow full width
+    padding: 0,
     transition: theme.transitions.create('margin', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
     marginLeft: 0,
-    marginTop: '64px', // Account for navbar height
-    width: '100%', // Ensure full width
+    marginTop: '64px',
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'center',
     ...(open && {
       transition: theme.transitions.create('margin', {
         easing: theme.transitions.easing.easeOut,
         duration: theme.transitions.duration.enteringScreen,
       }),
       marginLeft: `${drawerWidth}px`,
-      width: `calc(100% - ${drawerWidth}px)`, // Adjust width when drawer is open
+      width: `calc(100% - ${drawerWidth}px)`,
     }),
   }),
 );
@@ -169,8 +171,9 @@ const AdminLayout = () => {
 
       {/* Main Content */}
       <Main open={open}>
-        <Toolbar /> {/* Spacer for navbar */}
-        <Outlet />
+        <Box sx={{ width: '100%', maxWidth: '1200px', mx: 'auto', px: { xs: 4, sm: 6, md: 8, lg: 10 } }}>
+          <Outlet />
+        </Box>
       </Main>
     </Box>
   );

@@ -204,191 +204,190 @@ const AdminEventsPage = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
-      <Box sx={{ py: { xs: 2, sm: 3, md: 4 } }}>
-        <Box sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          justifyContent: 'space-between',
-          alignItems: { xs: 'stretch', sm: 'center' },
-          gap: 2,
-          mb: 3
-        }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}
-          >
-            Manage Events
-          </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleCreateEvent}
-            sx={{
-              minHeight: 44,
-              width: { xs: '100%', sm: 'auto' }
-            }}
-          >
-            Add Event
-          </Button>
-        </Box>
-
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        <Card>
-          <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
-            {loading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
-                <CircularProgress />
-              </Box>
-            ) : events.length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No events found
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Click "Add Event" to create your first event
-                </Typography>
-              </Box>
-            ) : (
-              <>
-                <TableContainer
-                  component={Paper}
-                  sx={{
-                    overflowX: 'auto',
-                    maxWidth: '100%'
-                  }}
-                >
-                  <Table sx={{ minWidth: { xs: 650, sm: 750 } }}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Event Title</TableCell>
-                        <TableCell>Date</TableCell>
-                        <TableCell>Location</TableCell>
-                        <TableCell>Category</TableCell>
-                        <TableCell>Status</TableCell>
-                        <TableCell>Featured</TableCell>
-                        <TableCell>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {events.map((event) => {
-                        const startDate = new Date(event.startDate);
-
-                        // Get status from event or default to 'upcoming'
-                        const currentStatus = event.eventStatus || 'upcoming';
-
-                        // Status colors
-                        const statusColors = {
-                          upcoming: '#2e7d32',
-                          ongoing: '#ed6c02',
-                          completed: '#1976d2',
-                          cancelled: '#d32f2f'
-                        };
-
-                        // If not published, show as Draft
-                        const displayStatus = !event.isPublished ? 'draft' : currentStatus;
-                        const statusColor = !event.isPublished ? '#757575' : statusColors[currentStatus];
-
-                        return (
-                          <TableRow key={event._id}>
-                            <TableCell>{event.title}</TableCell>
-                            <TableCell>
-                              {startDate.toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                              })}
-                            </TableCell>
-                            <TableCell>{event.location || 'N/A'}</TableCell>
-                            <TableCell sx={{ textTransform: 'capitalize' }}>
-                              {event.eventType || 'Other'}
-                            </TableCell>
-                            <TableCell>
-                              {!event.isPublished ? (
-                                <span style={{
-                                  color: statusColor,
-                                  fontWeight: 'bold',
-                                  textTransform: 'capitalize'
-                                }}>
-                                  Draft
-                                </span>
-                              ) : (
-                                <FormControl size="small" sx={{ minWidth: 120 }}>
-                                  <Select
-                                    value={currentStatus}
-                                    onChange={(e) => handleStatusChange(event._id, e.target.value)}
-                                    sx={{
-                                      color: statusColor,
-                                      fontWeight: 'bold',
-                                      '& .MuiSelect-select': {
-                                        py: 0.5
-                                      }
-                                    }}
-                                  >
-                                    <MenuItem value="upcoming">Upcoming</MenuItem>
-                                    <MenuItem value="ongoing">Ongoing</MenuItem>
-                                    <MenuItem value="completed">Completed</MenuItem>
-                                    <MenuItem value="cancelled">Cancelled</MenuItem>
-                                  </Select>
-                                </FormControl>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <IconButton
-                                size="small"
-                                color={event.isFeaturedOnHomepage ? 'warning' : 'default'}
-                                onClick={() => handleToggleFeatured(event)}
-                                aria-label={event.isFeaturedOnHomepage ? 'Remove from homepage' : 'Feature on homepage'}
-                                title={event.isFeaturedOnHomepage ? 'Remove from homepage' : 'Feature on homepage'}
-                              >
-                                {event.isFeaturedOnHomepage ? <StarIcon /> : <StarBorderIcon />}
-                              </IconButton>
-                            </TableCell>
-                            <TableCell>
-                              <IconButton
-                                size="small"
-                                color="primary"
-                                onClick={() => handleEditEvent(event)}
-                                aria-label={`Edit ${event.title}`}
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleDeleteClick(event)}
-                                aria-label={`Delete ${event.title}`}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <TablePagination
-                  rowsPerPageOptions={[5, 10, 25]}
-                  component="div"
-                  count={totalEvents}
-                  rowsPerPage={rowsPerPage}
-                  page={page}
-                  onPageChange={handleChangePage}
-                  onRowsPerPageChange={handleChangeRowsPerPage}
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
+    <Box sx={{ py: { xs: 2, sm: 3, md: 4 }, width: '100%' }}>
+      <Box sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'center',
+        alignItems: { xs: 'stretch', sm: 'center' },
+        gap: 2,
+        mb: 3,
+        textAlign: 'center'
+      }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{ fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }, width: '100%' }}
+        >
+          Manage Events
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={handleCreateEvent}
+          sx={{
+            minHeight: 44,
+            width: { xs: '100%', sm: 'auto' }
+          }}
+        >
+          Add Event
+        </Button>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Card sx={{ maxWidth: 1400, mx: 'auto' }}>
+        <CardContent sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+              <CircularProgress />
+            </Box>
+          ) : events.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No events found
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Click "Add Event" to create your first event
+              </Typography>
+            </Box>
+          ) : (
+            <>
+              <TableContainer
+                component={Paper}
+                sx={{
+                  overflowX: 'auto',
+                  maxWidth: '100%'
+                }}
+              >
+                <Table sx={{ minWidth: { xs: 650, sm: 750 } }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Event Title</TableCell>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Location</TableCell>
+                      <TableCell>Category</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Featured</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {events.map((event) => {
+                      const startDate = new Date(event.startDate);
+
+                      // Get status from event or default to 'upcoming'
+                      const currentStatus = event.eventStatus || 'upcoming';
+
+                      // Status colors
+                      const statusColors = {
+                        upcoming: '#2e7d32',
+                        ongoing: '#ed6c02',
+                        completed: '#1976d2',
+                        cancelled: '#d32f2f'
+                      };
+
+                      // If not published, show as Draft
+                      const displayStatus = !event.isPublished ? 'draft' : currentStatus;
+                      const statusColor = !event.isPublished ? '#757575' : statusColors[currentStatus];
+
+                      return (
+                        <TableRow key={event._id}>
+                          <TableCell>{event.title}</TableCell>
+                          <TableCell>
+                            {startDate.toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </TableCell>
+                          <TableCell>{event.location || 'N/A'}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>
+                            {event.eventType || 'Other'}
+                          </TableCell>
+                          <TableCell>
+                            {!event.isPublished ? (
+                              <span style={{
+                                color: statusColor,
+                                fontWeight: 'bold',
+                                textTransform: 'capitalize'
+                              }}>
+                                Draft
+                              </span>
+                            ) : (
+                              <FormControl size="small" sx={{ minWidth: 120 }}>
+                                <Select
+                                  value={currentStatus}
+                                  onChange={(e) => handleStatusChange(event._id, e.target.value)}
+                                  sx={{
+                                    color: statusColor,
+                                    fontWeight: 'bold',
+                                    '& .MuiSelect-select': {
+                                      py: 0.5
+                                    }
+                                  }}
+                                >
+                                  <MenuItem value="upcoming">Upcoming</MenuItem>
+                                  <MenuItem value="ongoing">Ongoing</MenuItem>
+                                  <MenuItem value="completed">Completed</MenuItem>
+                                  <MenuItem value="cancelled">Cancelled</MenuItem>
+                                </Select>
+                              </FormControl>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <IconButton
+                              size="small"
+                              color={event.isFeaturedOnHomepage ? 'warning' : 'default'}
+                              onClick={() => handleToggleFeatured(event)}
+                              aria-label={event.isFeaturedOnHomepage ? 'Remove from homepage' : 'Feature on homepage'}
+                              title={event.isFeaturedOnHomepage ? 'Remove from homepage' : 'Feature on homepage'}
+                            >
+                              {event.isFeaturedOnHomepage ? <StarIcon /> : <StarBorderIcon />}
+                            </IconButton>
+                          </TableCell>
+                          <TableCell>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              onClick={() => handleEditEvent(event)}
+                              aria-label={`Edit ${event.title}`}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteClick(event)}
+                              aria-label={`Delete ${event.title}`}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25]}
+                component="div"
+                count={totalEvents}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Event Form Dialog */}
       <EventFormDialog
@@ -413,8 +412,8 @@ const AdminEventsPage = () => {
             Are you sure you want to delete the event "{eventToDelete?.title}"? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="primary">
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={handleCloseDeleteDialog} variant="outlined">
             Cancel
           </Button>
           <Button onClick={handleDeleteEvent} color="error" variant="contained" autoFocus>
@@ -422,7 +421,7 @@ const AdminEventsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+    </Box>
   );
 };
 
