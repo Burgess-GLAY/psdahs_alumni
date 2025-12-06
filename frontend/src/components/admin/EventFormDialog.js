@@ -159,12 +159,13 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
     const initialValues = {
         title: event?.title || '',
         description: event?.description || '',
-        category: event?.category || 'other',
+        category: event?.eventType || 'other', // Backend uses eventType, form uses category
         startDate: event?.startDate ? new Date(event.startDate) : null,
         endDate: event?.endDate ? new Date(event.endDate) : null,
         location: event?.location || '',
         capacity: event?.capacity || '',
         registrationEnabled: event?.registrationEnabled || false, // Default OFF
+        isPublished: event?.isPublished !== undefined ? event.isPublished : true, // Default ON for new events
         featuredImage: event?.featuredImage || '',
         speakers: event?.speakers || [],
         agenda: event?.agenda || [],
@@ -179,8 +180,8 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
                 country: '',
             },
             coordinates: {
-                lat: null,
-                lng: null,
+                lat: '',
+                lng: '',
             },
             directions: '',
             parkingInfo: '',
@@ -189,8 +190,16 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
 
     // Set preview image if editing an event with an existing image
     useEffect(() => {
-        if (event?.featuredImage) {
-            setPreviewImage(event.featuredImage);
+        const imagePath = event?.featuredImage || event?.image;
+        if (imagePath) {
+            // Handle different path formats
+            if (imagePath.startsWith('http') || imagePath.startsWith('/images/') || imagePath.startsWith('/uploads/')) {
+                setPreviewImage(imagePath);
+            } else {
+                // Assume it's a legacy image in /images/
+                const filename = imagePath.split(/[\\/]/).pop();
+                setPreviewImage(`/images/${filename}`);
+            }
         } else {
             setPreviewImage(null);
         }
@@ -342,53 +351,45 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
         try {
             setIsSubmitting(true);
 
-            // Prepare form data for submission
             const formData = new FormData();
+
+            // Append basic fields
             formData.append('title', values.title);
             formData.append('description', values.description);
-            formData.append('category', values.category);
+            formData.append('eventType', values.category);
             formData.append('startDate', values.startDate.toISOString());
             formData.append('endDate', values.endDate.toISOString());
             formData.append('location', values.location);
             formData.append('registrationEnabled', values.registrationEnabled);
+            formData.append('isPublished', values.isPublished);
 
             if (values.capacity) {
                 formData.append('capacity', values.capacity);
             }
 
-            // Add image file if a new one was selected
-            if (imageFile) {
-                formData.append('image', imageFile);
-            }
-
-            // Add speakers data
+            // Append complex fields as JSON strings
             if (values.speakers && values.speakers.length > 0) {
                 formData.append('speakers', JSON.stringify(values.speakers));
-
-                // Add speaker photo files
-                values.speakers.forEach((speaker, index) => {
-                    if (speakerPhotoFiles[index]) {
-                        formData.append(`speakerPhoto_${index}`, speakerPhotoFiles[index]);
-                    }
-                });
             }
 
-            // Add agenda data
             if (values.agenda && values.agenda.length > 0) {
                 formData.append('agenda', JSON.stringify(values.agenda));
             }
 
-            // Add FAQ data
             if (values.faq && values.faq.length > 0) {
                 formData.append('faq', JSON.stringify(values.faq));
             }
 
-            // Add location details data
             if (values.locationDetails) {
                 formData.append('locationDetails', JSON.stringify(values.locationDetails));
             }
 
-            // Call the onSave callback with the form data
+            // Append file if selected
+            if (imageFile) {
+                formData.append('featuredImage', imageFile);
+            }
+
+            // Call the onSave callback with FormData
             await onSave(formData);
 
             // Close dialog and reset state
@@ -624,12 +625,36 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
                                     )}
                                 </Grid>
 
-                                {/* Registration Settings Section */}
+                                {/* Publishing & Registration Settings Section */}
                                 <Grid item xs={12}>
                                     <Typography variant="h6" gutterBottom color="primary" sx={{ mt: 2 }}>
-                                        Registration Settings
+                                        Publishing & Registration Settings
                                     </Typography>
                                     <Divider sx={{ mb: 2 }} />
+                                </Grid>
+
+                                <Grid item xs={12}>
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={values.isPublished}
+                                                onChange={(e) => setFieldValue('isPublished', e.target.checked)}
+                                                name="isPublished"
+                                                color="primary"
+                                                disabled={isSubmitting}
+                                            />
+                                        }
+                                        label={
+                                            <Box>
+                                                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                                                    Publish Event
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    When enabled, this event will be visible on the public events page
+                                                </Typography>
+                                            </Box>
+                                        }
+                                    />
                                 </Grid>
 
                                 <Grid item xs={12}>
@@ -671,7 +696,7 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
                                                 <DragDropContext
                                                     onDragEnd={(result) => handleSpeakerDragEnd(result, values, setFieldValue)}
                                                 >
-                                                    <Droppable droppableId="speakers">
+                                                    <Droppable droppableId="speakers" isDropDisabled={false} isCombineEnabled={false}>
                                                         {(provided) => (
                                                             <Box
                                                                 {...provided.droppableProps}
@@ -870,7 +895,7 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
                                                 <DragDropContext
                                                     onDragEnd={(result) => handleAgendaDragEnd(result, values, setFieldValue)}
                                                 >
-                                                    <Droppable droppableId="agenda">
+                                                    <Droppable droppableId="agenda" isDropDisabled={false} isCombineEnabled={false}>
                                                         {(provided) => (
                                                             <Box
                                                                 {...provided.droppableProps}
@@ -1050,7 +1075,7 @@ const EventFormDialog = ({ open, onClose, event = null, onSave }) => {
                                                 <DragDropContext
                                                     onDragEnd={(result) => handleFaqDragEnd(result, values, setFieldValue)}
                                                 >
-                                                    <Droppable droppableId="faq">
+                                                    <Droppable droppableId="faq" isDropDisabled={false} isCombineEnabled={false}>
                                                         {(provided) => (
                                                             <Box
                                                                 {...provided.droppableProps}

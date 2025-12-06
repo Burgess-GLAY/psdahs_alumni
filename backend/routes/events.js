@@ -4,6 +4,8 @@ const { check } = require('express-validator');
 const eventController = require('../controllers/eventController');
 const { protect, admin } = require('../middleware/auth');
 
+const upload = require('../middleware/upload');
+
 // Public routes
 router.get('/', eventController.getEvents);
 router.get('/upcoming', eventController.getUpcomingEvents);
@@ -20,6 +22,7 @@ router.post(
   '/',
   protect,
   admin,
+  upload.single('featuredImage'),
   [
     check('title', 'Title is required').not().isEmpty(),
     check('description', 'Description is required').not().isEmpty(),
@@ -27,6 +30,16 @@ router.post(
     check('endDate', 'End date is required').isISO8601(),
     check('location', 'Location is required').not().isEmpty()
   ],
+  (req, res, next) => {
+    const { validationResult } = require('express-validator');
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.error('Validation errors:', errors.array());
+      console.error('Request body:', req.body);
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    next();
+  },
   eventController.createEvent
 );
 
@@ -48,6 +61,7 @@ router.put(
   '/:id',
   protect,
   admin,
+  upload.single('featuredImage'),
   [
     check('title', 'Title is required').optional().not().isEmpty(),
     check('description', 'Description is required').optional().not().isEmpty(),
@@ -55,6 +69,16 @@ router.put(
     check('endDate', 'Invalid end date').optional().isISO8601(),
     check('location', 'Location is required').optional().not().isEmpty()
   ],
+  (req, res, next) => {
+    const { validationResult } = require('express-validator');
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.error('UPDATE Validation errors:', errors.array());
+      console.error('UPDATE Request body:', req.body);
+      return res.status(400).json({ success: false, errors: errors.array() });
+    }
+    next();
+  },
   eventController.updateEvent
 );
 

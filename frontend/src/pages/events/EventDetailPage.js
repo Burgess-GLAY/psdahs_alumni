@@ -224,6 +224,42 @@ const EventDetailPage = () => {
   const isEventPast = isBefore(parseISO(event.endDate), new Date());
   const registrationClosed = !event.registrationEnabled || (event.capacity && event.registered >= event.capacity && !event.isRegistered);
 
+  // Helper function to map event images based on title
+  const getEventImage = (event) => {
+    if (!event) return '/images/event-placeholder.jpg';
+
+    const title = event.title?.toLowerCase() || '';
+
+    // Map specific event titles to images
+    if (title.includes('reunion') && title.includes('2024')) {
+      return '/images/reunion-2024.jpeg';
+    } else if (title.includes('reunion') && title.includes('2025')) {
+      return '/images/reunion-2025.jpg';
+    } else if (title.includes('fundraising') || title.includes('gala')) {
+      return '/images/funraising-gala.jpeg';
+    } else if (title.includes('sport') && title.includes('day')) {
+      return '/images/reunion sport day.jpeg';
+    }
+
+    // If event has an image field (check featuredImage first, then image)
+    const imagePath = event.featuredImage || event.image;
+    if (imagePath) {
+      // If it's a full URL or starts with /images/ or /uploads/, use it directly
+      if (imagePath.startsWith('http') || imagePath.startsWith('/images/') || imagePath.startsWith('/uploads/')) {
+        return imagePath;
+      }
+      // If it's an uploaded file path (from backend uploads), extract filename
+      // and check if it exists in /images/ directory
+      const filename = imagePath.split(/[\\/]/).pop(); // Get filename from path
+      return `/images/${filename}`;
+    }
+
+    // Return default placeholder
+    return '/images/event-placeholder.jpg';
+  };
+
+  const displayImage = eventImageFromState || getEventImage(event);
+
   return (
     <Container maxWidth="xl" sx={{ py: 4, px: { xs: 2, sm: 3, md: 4 } }}>
       {/* Back button and title */}
@@ -248,7 +284,7 @@ const EventDetailPage = () => {
           <CardMedia
             component="img"
             height="400"
-            image={eventImageFromState || event.featuredImage || event.image || '/images/event-placeholder.jpg'}
+            image={displayImage}
             alt={event.title}
             sx={{
               objectFit: 'cover',

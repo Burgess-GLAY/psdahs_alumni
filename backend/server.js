@@ -42,7 +42,7 @@ app.use('/images', (req, res, next) => {
 
 // Database connection with dev fallback to in-memory server
 async function connectDB() {
-  const uri = 'mongodb://127.0.0.1:27017/psdahs_alumni?directConnection=true';
+  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/psdahs_alumni?directConnection=true';
   const options = {
     dbName: 'psdahs_alumni',
     useNewUrlParser: true,

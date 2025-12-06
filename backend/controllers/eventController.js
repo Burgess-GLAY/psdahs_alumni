@@ -222,12 +222,28 @@ exports.getEventById = async (req, res, next) => {
 // @access  Private/Admin
 exports.createEvent = async (req, res, next) => {
   try {
+    // Parse JSON strings if they come from FormData
+    ['speakers', 'agenda', 'faq', 'locationDetails'].forEach(field => {
+      if (typeof req.body[field] === 'string') {
+        try {
+          req.body[field] = JSON.parse(req.body[field]);
+        } catch (e) {
+          console.error(`Failed to parse ${field}:`, e);
+        }
+      }
+    });
+
     const eventData = {
       ...req.body,
       createdBy: req.user.id,
       organizers: [req.user.id],
-      isPublished: req.body.isPublished || false
+      isPublished: req.body.isPublished !== undefined ? req.body.isPublished : false
     };
+
+    // Handle file upload
+    if (req.file) {
+      eventData.featuredImage = `/uploads/${req.file.filename}`;
+    }
 
     // Handle speakers array with order
     if (req.body.speakers && Array.isArray(req.body.speakers)) {
@@ -285,8 +301,24 @@ exports.updateEvent = async (req, res, next) => {
       return next(new ErrorResponse('Not authorized to update this event', 403));
     }
 
+    // Parse JSON strings if they come from FormData
+    ['speakers', 'agenda', 'faq', 'locationDetails'].forEach(field => {
+      if (typeof req.body[field] === 'string') {
+        try {
+          req.body[field] = JSON.parse(req.body[field]);
+        } catch (e) {
+          console.error(`Failed to parse ${field}:`, e);
+        }
+      }
+    });
+
     // Prevent updating certain fields
     const { _id, createdAt, updatedAt, __v, ...updateData } = req.body;
+
+    // Handle file upload
+    if (req.file) {
+      updateData.featuredImage = `/uploads/${req.file.filename}`;
+    }
 
     // Handle speakers array with order
     if (req.body.speakers && Array.isArray(req.body.speakers)) {

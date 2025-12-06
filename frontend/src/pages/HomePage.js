@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Box,
@@ -7,8 +7,6 @@ import {
   Button,
   Grid,
   Card,
-  CardContent,
-  CardMedia,
   CardActionArea,
   useTheme
 } from '@mui/material';
@@ -24,28 +22,31 @@ import {
   School as SchoolIcon,
   ArrowForward as ArrowForwardIcon
 } from '@mui/icons-material';
-import EventCard from '../components/events/EventCard';
+import HomeEventCard from '../components/events/HomeEventCard';
 import TestimonialsSection from '../components/home/TestimonialsSection';
 import AlumniStatsSection from '../components/home/AlumniStatsSection';
 
 const features = [
   {
-    icon: <EventIcon fontSize="large" color="primary" />,
+    icon: <EventIcon fontSize="large" sx={{ color: '#E91E63' }} />,
     title: 'Upcoming Events',
     description: 'Stay updated with all the upcoming alumni events, reunions, and activities.',
-    link: '/events'
+    link: '/events',
+    image: '/images/reunion-2024.jpeg'
   },
   {
-    icon: <PeopleIcon fontSize="large" color="primary" />,
+    icon: <PeopleIcon fontSize="large" sx={{ color: '#E91E63' }} />,
     title: 'Connect with Alumni',
     description: 'Reconnect with old classmates and expand your professional network.',
-    link: '/network'
+    link: '/alumni/connect',
+    image: '/images/reunion-2025.jpg'
   },
   {
-    icon: <SchoolIcon fontSize="large" color="primary" />,
+    icon: <SchoolIcon fontSize="large" sx={{ color: '#E91E63' }} />,
     title: 'Give Back',
     description: 'Support current students through mentorship and scholarship programs.',
-    link: '/give-back'
+    link: '/give-back',
+    image: '/images/funraising-gala.jpeg'
   }
 ];
 
@@ -68,10 +69,25 @@ const HomePage = () => {
       return '/images/reunion-2025.jpg';
     } else if (title.includes('fundraising') || title.includes('gala')) {
       return '/images/funraising-gala.jpeg';
+    } else if (title.includes('sport') && title.includes('day')) {
+      return '/images/reunion sport day.jpeg';
     }
 
-    // Return the event's existing image or default
-    return event.image || '/images/event-placeholder.jpg';
+    // If event has an image field (check featuredImage first, then image)
+    const imagePath = event.featuredImage || event.image;
+    if (imagePath) {
+      // If it's a full URL or starts with /images/ or /uploads/, use it directly
+      if (imagePath.startsWith('http') || imagePath.startsWith('/images/') || imagePath.startsWith('/uploads/')) {
+        return imagePath;
+      }
+      // If it's an uploaded file path (from backend uploads), extract filename
+      // and check if it exists in /images/ directory
+      const filename = imagePath.split(/[\\/]/).pop(); // Get filename from path
+      return `/images/${filename}`;
+    }
+
+    // Return default placeholder
+    return '/images/event-placeholder.jpg';
   };
 
   // Fetch featured events from API (max 3 for homepage)
@@ -94,14 +110,8 @@ const HomePage = () => {
           }));
           setEvents(eventsWithImages);
         } else {
-          // Fallback to upcoming events if no featured events
-          const upcomingResponse = await api.get('/events/upcoming?limit=3');
-          const upcomingEvents = upcomingResponse.data.data || [];
-          const eventsWithImages = upcomingEvents.map(event => ({
-            ...event,
-            image: getEventImage(event)
-          }));
-          setEvents(eventsWithImages);
+          // If no featured events, show empty state (per user request)
+          setEvents([]);
         }
       } catch (err) {
         console.error('Failed to fetch events:', err);
@@ -225,12 +235,41 @@ const HomePage = () => {
                   width: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'transform 0.3s',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  borderRadius: 4,
+                  transition: 'transform 0.3s, box-shadow 0.3s',
                   '&:hover': {
                     transform: 'translateY(-8px)',
+                    boxShadow: theme.shadows[10],
                   },
                 }}
               >
+                {/* Background Image with Overlay */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundImage: `url("${feature.image}")`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    zIndex: 0,
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dark overlay for readability
+                      zIndex: 1,
+                    }
+                  }}
+                />
+
                 <CardActionArea
                   component={Link}
                   to={feature.link}
@@ -245,22 +284,32 @@ const HomePage = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'flex-start',
-                    p: 3,
+                    p: 4,
+                    position: 'relative',
+                    zIndex: 2, // Content above overlay
+                    height: '100%'
                   }}
                 >
-                  <Box sx={{ mb: 2, color: 'primary.main' }}>
+                  <Box sx={{ mb: 2, bgcolor: 'white', p: 1, borderRadius: 2, display: 'inline-flex' }}>
                     {feature.icon}
                   </Box>
-                  <Typography variant="h5" component="h3" gutterBottom>
+                  <Typography variant="h5" component="h3" gutterBottom sx={{ color: 'white', fontWeight: 'bold' }}>
                     {feature.title}
                   </Typography>
-                  <Typography color="textSecondary" sx={{ mb: 2, flexGrow: 1 }}>
+                  <Typography sx={{ mb: 3, flexGrow: 1, color: 'rgba(255, 255, 255, 0.8)' }}>
                     {feature.description}
                   </Typography>
                   <Button
-                    color="primary"
+                    sx={{
+                      mt: 'auto',
+                      alignSelf: 'flex-start',
+                      color: '#E91E63', // Pink text
+                      fontWeight: 'bold',
+                      '&:hover': {
+                        bgcolor: 'rgba(233, 30, 99, 0.1)',
+                      }
+                    }}
                     endIcon={<ArrowForwardIcon />}
-                    sx={{ mt: 'auto', alignSelf: 'flex-start' }}
                   >
                     Learn more
                   </Button>
@@ -312,10 +361,30 @@ const HomePage = () => {
               </Typography>
             </Box>
           ) : (
-            <Grid container spacing={4} sx={{ display: 'flex', flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+            <Grid
+              container
+              spacing={4}
+              sx={{
+                display: 'flex',
+                alignItems: 'stretch' // Ensure all items stretch to match height
+              }}
+            >
               {events.map((event) => (
-                <Grid item xs={12} sm={12} md={4} key={event._id} sx={{ display: 'flex' }}>
-                  <EventCard event={event} />
+                <Grid
+                  item
+                  xs={12}
+                  sm={6} // 2 columns on tablet
+                  md={4} // 3 columns on desktop
+                  key={event._id}
+                  sx={{
+                    display: 'flex',
+                    '& > *': {
+                      width: '100%',
+                      height: '100%' // Force card to take full height
+                    }
+                  }}
+                >
+                  <HomeEventCard event={event} />
                 </Grid>
               ))}
             </Grid>
